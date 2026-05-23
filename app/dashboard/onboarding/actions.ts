@@ -4,7 +4,9 @@ import { requireAuth } from '@/lib/auth/auth';
 import { onboardingSchema, type OnboardingInput } from '@/lib/validations/onboarding';
 import { saveUserProfile, isOnboardingComplete } from '@/lib/services/user-profile.service';
 
-export async function submitOnboarding(formData: OnboardingInput) {
+import { ActionResult } from '@/lib/validations/common';
+
+export async function submitOnboarding(formData: OnboardingInput): Promise<ActionResult> {
   try {
     const session = await requireAuth();
     const userId = session.user.id;
@@ -21,12 +23,12 @@ export async function submitOnboarding(formData: OnboardingInput) {
   }
 }
 
-export async function checkOnboardingStatus() {
+export async function checkOnboardingStatus(): Promise<ActionResult<boolean>> {
   try {
     const session = await requireAuth();
     const isComplete = await isOnboardingComplete(session.user.id);
-    return isComplete;
+    return { success: true, data: isComplete };
   } catch {
-    return false;
+    return { success: false, error: 'Failed to check onboarding status' };
   }
 }

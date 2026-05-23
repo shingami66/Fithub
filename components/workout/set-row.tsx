@@ -1,87 +1,132 @@
 'use client';
 
-import { Check } from 'lucide-react';
+import { useState, memo } from 'react';
+import { Check, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 
 interface SetRowProps {
-  setNumber: number;
-  weight: string;
-  reps: string;
-  isCompleted: boolean;
-  onUpdate: (field: 'weight' | 'reps', value: string) => void;
-  onComplete: () => void;
+  index: number;
+  weight: number;
+  reps: number;
+  completed: boolean;
+  isPR?: boolean;
+  onUpdate: (weight: number, reps: number) => void;
+  onToggleComplete: () => void;
 }
 
-export function SetRow({
-  setNumber,
+export const SetRow = memo(function SetRow({
+  index,
   weight,
   reps,
-  isCompleted,
+  completed,
+  isPR,
   onUpdate,
-  onComplete,
+  onToggleComplete,
 }: SetRowProps) {
+  const [localWeight, setLocalWeight] = useState(weight.toString());
+  const [localReps, setLocalReps] = useState(reps.toString());
+
+  const handleBlur = () => {
+    const w = parseFloat(localWeight) || 0;
+    const r = parseInt(localReps, 10) || 0;
+    setLocalWeight(w.toString());
+    setLocalReps(r.toString());
+    onUpdate(w, r);
+  };
+
+  const incrementWeight = (amount: number) => {
+    const current = parseFloat(localWeight) || 0;
+    const updated = (current + amount).toString();
+    setLocalWeight(updated);
+    onUpdate(parseFloat(updated), parseInt(localReps, 10) || 0);
+  };
+
   return (
     <div
       className={cn(
-        'grid grid-cols-[30px_1fr_1fr_40px] gap-2 items-center p-1 rounded-xl transition-all duration-300',
-        isCompleted ? 'bg-[#deff9a]/5' : 'bg-transparent',
+        'group flex items-center justify-between py-1.5 px-2 -mx-2 rounded-xl transition-colors',
+        completed ? 'bg-[#7dd3fc]/[0.03]' : 'hover:bg-white/[0.02]',
       )}
     >
-      {/* Set Number */}
-      <div className="flex items-center justify-center">
-        <span className="text-xs font-bold text-neutral-500">{setNumber}</span>
-      </div>
-
-      {/* Weight Input */}
-      <div className="relative">
-        <input
-          type="number"
-          inputMode="decimal"
-          value={weight}
-          onChange={(e) => onUpdate('weight', e.target.value)}
-          disabled={isCompleted}
-          className={cn(
-            'w-full h-12 text-center text-lg font-semibold rounded-lg transition-all',
-            'bg-white/[0.04] border border-transparent focus:border-[#deff9a]/30 focus:bg-white/[0.06] focus:outline-none',
-            'placeholder:text-neutral-700',
-            isCompleted ? 'text-neutral-400 bg-transparent' : 'text-white',
-          )}
-          placeholder="0"
-        />
-      </div>
-
-      {/* Reps Input */}
-      <div className="relative">
-        <input
-          type="number"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          value={reps}
-          onChange={(e) => onUpdate('reps', e.target.value)}
-          disabled={isCompleted}
-          className={cn(
-            'w-full h-12 text-center text-lg font-semibold rounded-lg transition-all',
-            'bg-white/[0.04] border border-transparent focus:border-[#deff9a]/30 focus:bg-white/[0.06] focus:outline-none',
-            'placeholder:text-neutral-700',
-            isCompleted ? 'text-neutral-400 bg-transparent' : 'text-white',
-          )}
-          placeholder="0"
-        />
-      </div>
-
-      {/* Complete Toggle Button */}
-      <button
-        onClick={onComplete}
-        className={cn(
-          'flex items-center justify-center h-12 w-full rounded-lg transition-all duration-300 active:scale-90',
-          isCompleted
-            ? 'bg-[#deff9a] text-neutral-950 shadow-[0_0_15px_rgba(222,255,154,0.3)]'
-            : 'bg-white/[0.05] text-neutral-600 hover:bg-white/[0.1] hover:text-white',
+      {/* Set Number & PR Indicator */}
+      <div className="flex items-center gap-2 w-10 shrink-0 justify-center">
+        {isPR ? (
+          <Trophy className="w-3.5 h-3.5 text-[#ffe59a]" />
+        ) : (
+          <span className="text-xs font-bold text-neutral-500">{index + 1}</span>
         )}
-        aria-label={isCompleted ? 'Mark incomplete' : 'Mark complete'}
+      </div>
+
+      {/* Inputs Section */}
+      <div className="flex flex-1 items-center gap-1.5 px-2">
+        <div className="relative flex-1 max-w-[80px]">
+          <input
+            type="text"
+            inputMode="decimal"
+            value={localWeight}
+            onChange={(e) => setLocalWeight(e.target.value)}
+            onBlur={handleBlur}
+            disabled={completed}
+            className={cn(
+              'w-full h-9 bg-white/[0.04] text-center text-sm font-bold rounded-lg outline-none transition-colors',
+              completed
+                ? 'text-neutral-400 bg-transparent'
+                : 'text-white focus:bg-white/[0.08] focus:ring-1 focus:ring-[#7dd3fc]/30',
+            )}
+          />
+        </div>
+
+        <span className="text-xs text-neutral-600 font-medium px-1">kg</span>
+
+        <div className="relative flex-1 max-w-[70px]">
+          <input
+            type="text"
+            inputMode="numeric"
+            value={localReps}
+            onChange={(e) => setLocalReps(e.target.value)}
+            onBlur={handleBlur}
+            disabled={completed}
+            className={cn(
+              'w-full h-9 bg-white/[0.04] text-center text-sm font-bold rounded-lg outline-none transition-colors',
+              completed
+                ? 'text-neutral-400 bg-transparent'
+                : 'text-white focus:bg-white/[0.08] focus:ring-1 focus:ring-[#7dd3fc]/30',
+            )}
+          />
+        </div>
+        <span className="text-xs text-neutral-600 font-medium px-1">reps</span>
+      </div>
+
+      {/* Quick Increments (Only show if not completed) */}
+      {!completed && (
+        <div className="hidden sm:flex items-center gap-1 mr-3">
+          <button
+            onClick={() => incrementWeight(2.5)}
+            className="px-2 py-1 text-[10px] font-bold text-neutral-400 bg-white/[0.04] rounded-md hover:bg-white/10 active:scale-95 transition-all"
+          >
+            +2.5
+          </button>
+          <button
+            onClick={() => incrementWeight(5)}
+            className="px-2 py-1 text-[10px] font-bold text-neutral-400 bg-white/[0.04] rounded-md hover:bg-white/10 active:scale-95 transition-all"
+          >
+            +5
+          </button>
+        </div>
+      )}
+
+      {/* Check Button */}
+      <button
+        onClick={onToggleComplete}
+        className={cn(
+          'w-9 h-9 shrink-0 flex items-center justify-center rounded-lg transition-all active:scale-90',
+          completed
+            ? 'bg-[#7dd3fc] text-black'
+            : 'bg-white/[0.05] text-neutral-500 hover:bg-white/[0.1] hover:text-white',
+        )}
       >
-        <Check strokeWidth={3} className="h-5 w-5" />
+        <Check className="w-4 h-4" strokeWidth={completed ? 3 : 2} />
       </button>
     </div>
   );
-}
+});

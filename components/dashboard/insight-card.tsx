@@ -18,7 +18,7 @@ export function InsightCard({ type, title, description }: InsightCardProps) {
   }[type];
 
   const colorStyles = {
-    positive: 'text-[#deff9a] bg-[#deff9a]/10 border-[#deff9a]/20',
+    positive: 'text-[#7dd3fc] bg-[#7dd3fc]/10 border-[#7dd3fc]/20',
     warning: 'text-[#ff9a9a] bg-[#ff9a9a]/10 border-[#ff9a9a]/20',
     neutral: 'text-neutral-300 bg-white/[0.03] border-white/[0.05]',
     action: 'text-[#9aabff] bg-[#9aabff]/10 border-[#9aabff]/20',

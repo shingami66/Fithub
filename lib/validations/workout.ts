@@ -30,3 +30,45 @@ export const addSetSchema = z.object({
 export type UpdateSetInput = z.infer<typeof updateSetSchema>;
 export type AddExerciseInput = z.infer<typeof addExerciseSchema>;
 export type AddSetInput = z.infer<typeof addSetSchema>;
+
+export const workoutSessionDBSchema = z.object({
+  userId: z.string().min(1),
+  name: z.string().min(1),
+  startedAt: z.date(),
+  endedAt: z.date().optional(),
+  lastInteractionAt: z.date(),
+  durationMs: z.number().min(0),
+  totalVolumeKg: z.number().min(0),
+  notes: z.string().optional(),
+  status: z.enum(['active', 'completed', 'cancelled']),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export const exerciseEntryDBSchema = z.object({
+  userId: z.string().min(1),
+  workoutSessionId: z.string().min(1),
+  exerciseId: z.string().min(1),
+  name: z.string().min(1),
+  targetMuscle: z.string().min(1),
+  order: z.number().min(0),
+  notes: z.string().optional(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export const exerciseSetDBSchema = z.object({
+  userId: z.string().min(1),
+  exerciseEntryId: z.string().min(1),
+  workoutSessionId: z.string().min(1),
+  setNumber: z.number().min(1),
+  reps: z.number().nullable(),
+  weightKg: z.number().nullable(),
+  rir: z.number().nullable().optional(),
+  restTimeSec: z.number().nullable().optional(),
+  notes: z.string().optional(),
+  completed: z.boolean(),
+  type: z.enum(['warmup', 'working', 'dropset', 'failure']),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});

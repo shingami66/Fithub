@@ -22,7 +22,7 @@ export default async function DashboardPage() {
   // Believable mock data for SaaS realism
   const calorieData = { consumed: 1840, target: 2400 };
   const macroData = [
-    { label: 'Protein', consumed: 140, target: 180, color: '#deff9a' },
+    { label: 'Protein', consumed: 140, target: 180, color: '#7dd3fc' },
     { label: 'Carbs', consumed: 120, target: 200, color: '#ffffff' },
     { label: 'Fat', consumed: 50, target: 70, color: '#888888' },
   ];
@@ -100,7 +100,7 @@ export default async function DashboardPage() {
         >
           <div className="flex flex-col items-center justify-center h-full pb-8">
             <div className="relative flex items-center justify-center w-full">
-              <div className="absolute inset-0 bg-[#deff9a]/5 rounded-full blur-2xl" />
+              <div className="absolute inset-0 bg-[#7dd3fc]/5 rounded-full blur-2xl" />
               <p className="relative text-center text-sm font-medium text-neutral-400 leading-relaxed px-4">
                 Your CNS is fully recovered. You are primed for a high-intensity session today.
               </p>

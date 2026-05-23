@@ -25,7 +25,7 @@ export const metadata: Metadata = {
  * handles safe areas itself and env() returns 0.
  */
 export const viewport: Viewport = {
-  themeColor: '#0a0a0a',
+  themeColor: '#040816',
   viewportFit: 'cover',
 };
 

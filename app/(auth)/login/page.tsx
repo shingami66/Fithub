@@ -3,37 +3,25 @@ import { Activity } from 'lucide-react';
 import { GoogleSignInButton } from '@/components/ui/google-signin-button';
 
 export const metadata: Metadata = {
-  title: 'Sign In — Project Pulse',
-  description: 'Sign in to Project Pulse to track your workouts, nutrition, and fitness goals.',
+  title: 'Sign In — FitHub',
+  description: 'Sign in to FitHub to track your workouts, nutrition, and fitness goals.',
 };
 
 /**
- * Login page — premium dark glassmorphism aesthetic.
- *
- * DESIGN SYSTEM
- * ─────────────
- * - Pure black background (neutral-950) with a massive radial neon glow
- *   at ~5–8% opacity to create atmospheric depth.
- * - Content wrapped in a glassmorphism Bento-style card:
- *   translucent white/3 surface, backdrop-blur, subtle white/10 border.
- * - Typography: bold white title, neutral-400 subtitle, clean hierarchy.
- * - Neon accent (#deff9a) used sparingly on the logo icon and hover states.
- * - Mobile-first: full-screen centered, generous padding, large tap targets.
- *
- * The GoogleSignInButton is the sole Client Component (leaf architecture).
+ * Login page — premium dark glassmorphism aesthetic with Frost Blue identity.
  */
 export default function LoginPage() {
   return (
-    <main className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-neutral-950 px-5 py-12">
+    <main className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-[#040816] px-5 py-12">
       {/* ── Ambient background layers ── */}
 
-      {/* Primary neon radial glow — centered, massive, very low opacity */}
+      {/* Primary frost radial glow — centered, massive, very low opacity */}
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         <div
           className="absolute left-1/2 top-1/2 h-[900px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-100"
           style={{
             background:
-              'radial-gradient(circle, rgba(222,255,154,0.07) 0%, rgba(222,255,154,0.02) 40%, transparent 70%)',
+              'radial-gradient(circle, rgba(125,211,252,0.07) 0%, rgba(125,211,252,0.02) 40%, transparent 70%)',
           }}
         />
       </div>
@@ -43,7 +31,7 @@ export default function LoginPage() {
         <div
           className="absolute -left-40 -top-40 h-[500px] w-[500px] rounded-full opacity-100"
           style={{
-            background: 'radial-gradient(circle, rgba(222,255,154,0.04) 0%, transparent 60%)',
+            background: 'radial-gradient(circle, rgba(56,189,248,0.04) 0%, transparent 60%)',
           }}
         />
       </div>
@@ -65,12 +53,12 @@ export default function LoginPage() {
           <div className="flex flex-col items-center gap-8">
             {/* Logo icon */}
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/[0.06] bg-white/[0.04]">
-              <Activity className="h-8 w-8 text-[#deff9a]" strokeWidth={1.8} aria-hidden="true" />
+              <Activity className="h-8 w-8 text-[#7dd3fc]" strokeWidth={1.8} aria-hidden="true" />
             </div>
 
             {/* Title block */}
             <div className="flex flex-col items-center gap-2.5 text-center">
-              <h1 className="text-3xl font-bold tracking-tight text-white">Project Pulse</h1>
+              <h1 className="text-3xl font-bold tracking-tight text-white">FitHub</h1>
               <p className="max-w-[260px] text-sm leading-relaxed text-neutral-400">
                 Your gym companion. Track workouts, nutrition, and progress — all in one place.
               </p>

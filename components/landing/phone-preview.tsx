@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils/cn';
  * ────────────
  * - Phone floats with slow vertical oscillation (6px, 7s period).
  * - Ambient underglow beneath the phone: wide neon ellipse at 12% opacity
- *   with shadow-[0_30px_100px_-20px_rgba(222,255,154,0.15)].
+ *   with shadow-[0_30px_100px_-20px_rgba(125,211,252,0.15)].
  * - Glass glare overlay: diagonal semi-transparent gradient for materiality.
  * - Dark metallic border (neutral-800) with inset highlight for depth.
  * - Internal dashboard cards use layered glass with inset shadow system.
@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils/cn';
  */
 export function PhonePreview() {
   return (
-    <section className="relative overflow-hidden bg-neutral-950 px-5 py-28 sm:py-36">
+    <section className="relative overflow-hidden bg-[#040816] px-5 py-28 sm:py-36">
       {/* ── Atmospheric lighting ── */}
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         {/* Large center ambient */}
@@ -27,14 +27,14 @@ export function PhonePreview() {
           className="absolute left-1/2 top-1/2 h-[800px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
           style={{
             background:
-              'radial-gradient(circle, rgba(222,255,154,0.05) 0%, rgba(222,255,154,0.015) 40%, transparent 65%)',
+              'radial-gradient(circle, rgba(125,211,252,0.05) 0%, rgba(125,211,252,0.015) 40%, transparent 65%)',
           }}
         />
         {/* Lower accent for depth continuity */}
         <div
           className="absolute -bottom-32 left-1/2 h-[400px] w-[600px] -translate-x-1/2 rounded-full blur-3xl"
           style={{
-            background: 'radial-gradient(circle, rgba(222,255,154,0.03) 0%, transparent 60%)',
+            background: 'radial-gradient(circle, rgba(125,211,252,0.03) 0%, transparent 60%)',
           }}
         />
       </div>
@@ -42,7 +42,7 @@ export function PhonePreview() {
       {/* Section header */}
       <div className="relative mx-auto mb-16 max-w-2xl text-center sm:mb-20">
         <motion.span
-          className="mb-5 inline-block text-[11px] font-semibold uppercase tracking-[0.25em] text-[#deff9a]/50"
+          className="mb-5 inline-block text-[11px] font-semibold uppercase tracking-[0.25em] text-[#7dd3fc]/50"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
@@ -82,7 +82,7 @@ export function PhonePreview() {
         <div
           className="absolute -bottom-12 left-1/2 h-[120px] w-[320px] -translate-x-1/2 rounded-full blur-3xl"
           style={{
-            background: 'radial-gradient(ellipse, rgba(222,255,154,0.12) 0%, transparent 70%)',
+            background: 'radial-gradient(ellipse, rgba(125,211,252,0.12) 0%, transparent 70%)',
           }}
           aria-hidden="true"
         />
@@ -101,7 +101,7 @@ export function PhonePreview() {
             className={cn(
               'relative overflow-hidden rounded-[2.5rem] p-3',
               'border border-neutral-800 bg-neutral-900',
-              'shadow-[0_30px_100px_-20px_rgba(222,255,154,0.12),0_10px_40px_-10px_rgba(0,0,0,0.6)]',
+              'shadow-[0_30px_100px_-20px_rgba(125,211,252,0.12),0_10px_40px_-10px_rgba(0,0,0,0.6)]',
               'shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
             )}
           >
@@ -116,16 +116,16 @@ export function PhonePreview() {
             />
 
             {/* Dynamic Island */}
-            <div className="relative mx-auto mb-3 flex h-7 w-24 items-center justify-center rounded-full bg-neutral-950">
+            <div className="relative mx-auto mb-3 flex h-7 w-24 items-center justify-center rounded-full bg-[#040816]">
               <div className="h-1.5 w-1.5 rounded-full bg-neutral-800" />
             </div>
 
             {/* Screen content */}
-            <div className="space-y-2.5 rounded-[1.75rem] bg-neutral-950 p-4">
+            <div className="space-y-2.5 rounded-[1.75rem] bg-[#040816] p-4">
               {/* Status header */}
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] font-medium text-[#deff9a]/70">Good morning</p>
+                  <p className="text-[10px] font-medium text-[#7dd3fc]/70">Good morning</p>
                   <p className="text-sm font-bold text-white">Alex</p>
                 </div>
                 <div className="h-8 w-8 rounded-full border border-white/[0.06] bg-gradient-to-br from-neutral-700 to-neutral-800" />
@@ -150,11 +150,11 @@ export function PhonePreview() {
                         cy="28"
                         r="24"
                         fill="none"
-                        stroke="#deff9a"
+                        stroke="#7dd3fc"
                         strokeWidth="4"
                         strokeLinecap="round"
                         strokeDasharray={`${2 * Math.PI * 24 * 0.68} ${2 * Math.PI * 24}`}
-                        className="drop-shadow-[0_0_6px_rgba(222,255,154,0.35)]"
+                        className="drop-shadow-[0_0_6px_rgba(125,211,252,0.35)]"
                       />
                     </svg>
                     <span className="absolute text-[10px] font-bold text-white">68%</span>
@@ -181,7 +181,7 @@ export function PhonePreview() {
                         key={i}
                         className={cn(
                           'h-[3px] flex-1 rounded-full',
-                          i < 5 ? 'bg-[#deff9a]/50' : 'bg-white/[0.04]',
+                          i < 5 ? 'bg-[#7dd3fc]/50' : 'bg-white/[0.04]',
                         )}
                       />
                     ))}
@@ -191,7 +191,7 @@ export function PhonePreview() {
                 <PhoneCard compact>
                   <p className="text-[9px] text-neutral-600">Next Workout</p>
                   <p className="mt-0.5 text-sm font-bold text-white">Push Day</p>
-                  <p className="mt-1.5 text-[9px] text-[#deff9a]/50">5 exercises</p>
+                  <p className="mt-1.5 text-[9px] text-[#7dd3fc]/50">5 exercises</p>
                 </PhoneCard>
               </div>
 
@@ -199,7 +199,7 @@ export function PhonePreview() {
               <PhoneCard>
                 <p className="mb-3 text-[10px] text-neutral-600">Macros</p>
                 <div className="space-y-2.5">
-                  <MacroBar label="Protein" value={72} color="bg-[#deff9a]/70" />
+                  <MacroBar label="Protein" value={72} color="bg-[#7dd3fc]/70" />
                   <MacroBar label="Carbs" value={55} color="bg-sky-400/70" />
                   <MacroBar label="Fat" value={40} color="bg-amber-400/70" />
                 </div>
@@ -213,13 +213,13 @@ export function PhonePreview() {
                   <div
                     className={cn(
                       'h-3 w-3 rounded-sm',
-                      item === 'Home' ? 'bg-[#deff9a]/50' : 'bg-white/[0.06]',
+                      item === 'Home' ? 'bg-[#7dd3fc]/50' : 'bg-white/[0.06]',
                     )}
                   />
                   <span
                     className={cn(
                       'text-[7px] font-medium',
-                      item === 'Home' ? 'text-[#deff9a]/60' : 'text-neutral-700',
+                      item === 'Home' ? 'text-[#7dd3fc]/60' : 'text-neutral-700',
                     )}
                   >
                     {item}

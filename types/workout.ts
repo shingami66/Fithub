@@ -11,22 +11,28 @@ export interface WorkoutSession {
   totalVolumeKg: number;
   notes?: string;
   status: WorkoutStatus;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface ExerciseEntry {
   id: string;
+  userId: string;
   workoutSessionId: string;
   exerciseId: string;
   name: string;
   targetMuscle: string;
   order: number;
   notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export type SetType = 'warmup' | 'working' | 'dropset' | 'failure';
 
 export interface ExerciseSet {
   id: string;
+  userId: string;
   exerciseEntryId: string;
   workoutSessionId: string; // Denormalized for fast analytics
   setNumber: number;
@@ -37,4 +43,6 @@ export interface ExerciseSet {
   notes?: string; // CRITICAL for injury tracking or PRs
   completed: boolean;
   type: SetType;
+  createdAt: Date;
+  updatedAt: Date;
 }

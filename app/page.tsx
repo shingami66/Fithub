@@ -1,27 +1,26 @@
 import type { Metadata } from 'next';
 import { HeroSection } from '@/components/landing/hero-section';
 import { FeaturesGrid } from '@/components/landing/features-grid';
-import { PhonePreview } from '@/components/landing/phone-preview';
+import { ProductShowcase } from '@/components/landing/product-showcase';
 import { FinalCta } from '@/components/landing/final-cta';
 
 export const metadata: Metadata = {
-  title: 'Project Pulse — Your Gym Companion',
+  title: 'FitHub — The Operating System for Your Body',
   description:
-    'The all-in-one fitness companion that tracks workouts, nutrition, and progress. Designed for athletes who take training seriously.',
+    'Adaptive workout intelligence, real-time nutrition tracking, and recovery insights — engineered for athletes who refuse to plateau.',
 };
 
 /**
  * Public landing page (Server Component).
  *
- * This is the root route (/) — a dedicated marketing page that
- * introduces the product and drives unauthenticated users to /login.
+ * This is the root route (/) — a cinematic marketing page that
+ * introduces FitHub and drives unauthenticated users to /login.
  *
  * ARCHITECTURE
  * ────────────
  * - The page itself is a Server Component (no 'use client').
  * - Individual sections that require Framer Motion animations are
  *   Client Components imported at the leaf level.
- * - PhonePreview is a pure Server Component (no JS shipped).
  * - No auth checks here — this is a public page.
  *   Authenticated users navigate to /dashboard via the app nav.
  */
@@ -30,7 +29,7 @@ export default function LandingPage() {
     <>
       <HeroSection />
       <FeaturesGrid />
-      <PhonePreview />
+      <ProductShowcase />
       <FinalCta />
     </>
   );

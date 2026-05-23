@@ -1,41 +1,68 @@
-import { ExerciseSet, ExerciseEntry } from '@/types/workout';
+import { getDatabase } from '@/lib/db/mongodb';
 
 export class AnalyticsService {
   /**
-   * Calculates total volume (kg) moved during a workout session.
-   * Volume = Sets * Reps * Weight.
-   * Ignores sets marked as failure or incomplete if strict mode is desired,
-   * but typically volume includes all completed reps.
+   * Calculates daily volume (kg) moved over the last 7 days.
    */
-  static calculateWorkoutVolume(sets: ExerciseSet[]): number {
-    return sets.reduce((total, set) => {
-      if (!set.completed || !set.weightKg || !set.reps) return total;
-      return total + set.weightKg * set.reps;
-    }, 0);
+  static async calculateWorkoutVolume(userId: string) {
+    const db = await getDatabase();
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+    const pipeline = [
+      { $match: { userId, createdAt: { $gte: sevenDaysAgo } } },
+      { $unwind: '$sets' },
+      { $match: { 'sets.completed': true, 'sets.weightKg': { $gt: 0 }, 'sets.reps': { $gt: 0 } } },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+          volume: { $sum: { $multiply: ['$sets.weightKg', '$sets.reps'] } },
+        },
+      },
+      { $sort: { _id: 1 as const } },
+    ];
+
+    const result = await db.collection('exercise_entries').aggregate(pipeline).toArray();
+
+    // Map to last 7 days
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const data = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
+      const dateStr = d.toISOString().split('T')[0];
+      const match = result.find((r) => r._id === dateStr);
+      data.push({
+        name: days[d.getDay()],
+        volume: match ? match.volume : 0,
+      });
+    }
+
+    return data;
   }
+  static async calculateWeeklyConsistency(userId: string): Promise<number> {
+    const db = await getDatabase();
 
-  /**
-   * Calculates the weekly streak of completed workouts.
-   * Requires an array of completed workout dates sorted chronologically.
-   * A streak is broken if more than 7 days pass between workouts.
-   */
-  static calculateWeeklyStreak(completedWorkoutDates: Date[]): number {
-    if (completedWorkoutDates.length === 0) return 0;
+    // Get unique dates of completed workouts sorted descending
+    const sessions = await db
+      .collection('workout_sessions')
+      .find({ userId, status: 'completed' })
+      .sort({ startTime: -1 })
+      .toArray();
 
-    // Sort descending (newest first)
-    const sorted = [...completedWorkoutDates].sort((a, b) => b.getTime() - a.getTime());
-
-    const now = new Date();
-    // If the last workout was more than 7 days ago, current streak is 0
-    const msInDay = 1000 * 60 * 60 * 24;
-    const daysSinceLast = (now.getTime() - sorted[0].getTime()) / msInDay;
-
-    if (daysSinceLast > 7) return 0;
+    if (sessions.length === 0) return 0;
 
     let streak = 1;
-    for (let i = 0; i < sorted.length - 1; i++) {
-      const diff = (sorted[i].getTime() - sorted[i + 1].getTime()) / msInDay;
-      if (diff <= 7) {
+    const msInDay = 1000 * 60 * 60 * 24;
+    const now = new Date();
+
+    const daysSinceLast = (now.getTime() - new Date(sessions[0].startTime).getTime()) / msInDay;
+    if (daysSinceLast > 7) return 0;
+
+    for (let i = 0; i < sessions.length - 1; i++) {
+      const current = new Date(sessions[i].startTime).getTime();
+      const prev = new Date(sessions[i + 1].startTime).getTime();
+      const diffDays = (current - prev) / msInDay;
+
+      if (diffDays <= 7) {
         streak++;
       } else {
         break;
@@ -46,63 +73,81 @@ export class AnalyticsService {
   }
 
   /**
-   * Analyzes an array of exercise entries to determine frequency of muscle group targeting.
-   * Returns a map of Muscle -> Frequency Count.
+   * Analyzes frequency of muscle group targeting over the last 30 days.
    */
-  static calculateMuscleFrequency(entries: ExerciseEntry[]): Record<string, number> {
-    return entries.reduce(
-      (freq, entry) => {
-        const target = entry.targetMuscle.toLowerCase();
-        freq[target] = (freq[target] || 0) + 1;
-        return freq;
+  static async calculateMuscleFrequency(userId: string): Promise<Record<string, number>> {
+    const db = await getDatabase();
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+    const pipeline = [
+      { $match: { userId, createdAt: { $gte: thirtyDaysAgo } } },
+      { $group: { _id: '$targetMuscle', count: { $sum: 1 } } },
+    ];
+
+    const result = await db.collection('exercise_entries').aggregate(pipeline).toArray();
+
+    return result.reduce(
+      (acc, curr) => {
+        acc[curr._id.toLowerCase()] = curr.count;
+        return acc;
       },
       {} as Record<string, number>,
     );
   }
 
   /**
-   * Given an array of macro totals per day, returns the 7-day average.
-   * Useful for calories trend charts.
+   * 7-day rolling daily calories from nutrition_logs.
    */
-  static calculateCaloriesTrend(dailyTotals: { date: Date; calories: number }[]): number {
-    if (dailyTotals.length === 0) return 0;
+  static async calculateCaloriesTrend(userId: string) {
+    const db = await getDatabase();
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-    const now = new Date();
-    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const pipeline = [
+      { $match: { userId, date: { $gte: sevenDaysAgo } } },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+          calories: { $sum: '$totals.calories' },
+        },
+      },
+      { $sort: { _id: 1 as const } },
+    ];
 
-    const recentTotals = dailyTotals.filter((dt) => dt.date >= sevenDaysAgo);
-    if (recentTotals.length === 0) return 0;
+    const result = await db.collection('nutrition_logs').aggregate(pipeline).toArray();
 
-    const sum = recentTotals.reduce((acc, dt) => acc + dt.calories, 0);
-    return Math.round(sum / recentTotals.length);
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const data = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
+      const dateStr = d.toISOString().split('T')[0];
+      const match = result.find((r) => r._id === dateStr);
+      data.push({
+        name: days[d.getDay()],
+        calories: match ? Math.round(match.calories) : 0,
+      });
+    }
+
+    return data;
   }
 
   /**
-   * Generates a 0-100 recovery score based on recent workout volume, frequency, and sleep/nutrition if available.
-   * Mock deterministic logic for Sprint 8.
+   * Generates a 0-100 recovery score based on workout frequency vs sleep.
    */
-  static generateRecoveryScore(
-    consecutiveDaysWorkedOut: number,
-    avgSleepHours: number = 7,
-  ): number {
+  static async calculateRecoveryScore(userId: string): Promise<number> {
+    const db = await getDatabase();
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+
+    const recentWorkouts = await db
+      .collection('workout_sessions')
+      .countDocuments({ userId, startTime: { $gte: threeDaysAgo }, status: 'completed' });
+
     let score = 100;
-    score -= consecutiveDaysWorkedOut * 10;
-    if (avgSleepHours < 7) score -= (7 - avgSleepHours) * 15;
+    // Penalize if working out every single day heavily
+    if (recentWorkouts >= 3) {
+      score -= 20;
+    }
+
+    // Base heuristic since we don't have a sleep tracker yet
     return Math.max(score, 10);
-  }
-
-  static detectVolumeIncrease(lastWeekVolume: number, thisWeekVolume: number): number {
-    if (lastWeekVolume === 0) return 0;
-    return ((thisWeekVolume - lastWeekVolume) / lastWeekVolume) * 100;
-  }
-
-  static detectMissedMuscleGroups(recentWorkouts: Record<string, number>): string[] {
-    const allGroups = ['chest', 'back', 'legs', 'shoulders', 'arms', 'core'];
-    return allGroups.filter((g) => !recentWorkouts[g] || recentWorkouts[g] === 0);
-  }
-
-  static calculateConsistencyScore(workoutsLast30Days: number): number {
-    // Assuming optimal is 16 workouts / month (4x week)
-    return Math.min(Math.round((workoutsLast30Days / 16) * 100), 100);
   }
 }

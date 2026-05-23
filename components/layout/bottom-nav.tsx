@@ -22,7 +22,7 @@ export function BottomNav() {
         'fixed z-50 transition-all duration-500 ease-out',
         // Mobile behavior: stretched at bottom
         'bottom-0 left-0 right-0 w-full',
-        'border-t border-white/[0.05] bg-neutral-950/80 backdrop-blur-xl',
+        'border-t border-white/[0.05] bg-[#040816]/80 backdrop-blur-xl',
         'pb-[env(safe-area-inset-bottom)]',
         // Desktop behavior: floating dock
         'md:bottom-8 md:left-1/2 md:right-auto md:w-auto md:-translate-x-1/2',
@@ -54,7 +54,7 @@ export function BottomNav() {
                 {isActive && (
                   <motion.span
                     layoutId="mobile-active-bar"
-                    className="absolute -top-px left-1/2 h-0.5 w-6 -translate-x-1/2 rounded-full bg-[#deff9a] shadow-[0_0_8px_rgba(222,255,154,0.6)] md:hidden"
+                    className="absolute -top-px left-1/2 h-0.5 w-6 -translate-x-1/2 rounded-full bg-[#7dd3fc] shadow-[0_0_8px_rgba(125,211,252,0.6)] md:hidden"
                     aria-hidden="true"
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                   />
@@ -64,7 +64,7 @@ export function BottomNav() {
                   className={cn(
                     'h-5 w-5 transition-transform duration-300',
                     isActive
-                      ? 'text-[#deff9a] md:text-white drop-shadow-[0_0_6px_rgba(222,255,154,0.4)]'
+                      ? 'text-[#7dd3fc] md:text-white drop-shadow-[0_0_6px_rgba(125,211,252,0.4)]'
                       : '',
                     'group-hover:scale-110',
                   )}

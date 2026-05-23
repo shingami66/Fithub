@@ -31,15 +31,15 @@ export function RestTimer() {
           onClick={() => setIsOpen(!isOpen)}
           className={`flex h-14 w-14 items-center justify-center rounded-full border border-white/10 shadow-2xl backdrop-blur-2xl transition-all duration-300 ${
             isActive
-              ? 'bg-white/[0.1] text-[#deff9a]'
+              ? 'bg-white/[0.1] text-[#7dd3fc]'
               : isFinished
-                ? 'bg-[#deff9a] text-[#050505] animate-pulse'
+                ? 'bg-[#7dd3fc] text-[#050505] animate-pulse'
                 : 'bg-neutral-900 text-white hover:bg-neutral-800'
           }`}
         >
           <Timer className="h-6 w-6" strokeWidth={2.5} />
           {isActive && (
-            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#deff9a] text-[9px] font-bold text-black">
+            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#7dd3fc] text-[9px] font-bold text-black">
               {timeLeft}
             </span>
           )}
@@ -86,7 +86,7 @@ export function RestTimer() {
               </button>
               <button
                 onClick={() => setIsActive(!isActive)}
-                className={`flex items-center justify-center h-10 w-16 rounded-xl ${isActive ? 'bg-white/[0.05] text-white' : 'bg-[#deff9a] text-black'}`}
+                className={`flex items-center justify-center h-10 w-16 rounded-xl ${isActive ? 'bg-white/[0.05] text-white' : 'bg-[#7dd3fc] text-black'}`}
               >
                 {isActive ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
               </button>

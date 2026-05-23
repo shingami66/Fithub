@@ -22,7 +22,7 @@ export function CalorieRing({ consumed, target }: { consumed: number; target: nu
           cx="80"
           cy="80"
           r={radius}
-          stroke="#deff9a"
+          stroke="#7dd3fc"
           strokeWidth="14"
           fill="none"
           strokeLinecap="round"
@@ -30,7 +30,7 @@ export function CalorieRing({ consumed, target }: { consumed: number; target: nu
           initial={{ strokeDashoffset: circumference }}
           animate={{ strokeDashoffset }}
           transition={{ duration: 1.5, ease: [0.25, 0.1, 0.25, 1], delay: 0.4 }}
-          className="drop-shadow-[0_0_12px_rgba(222,255,154,0.3)]"
+          className="drop-shadow-[0_0_12px_rgba(125,211,252,0.3)]"
         />
       </svg>
       <div className="absolute flex flex-col items-center">

@@ -61,14 +61,14 @@ export function ActivityStep({ selectedLevel, onNext, onBack }: ActivityStepProp
               className={cn(
                 'flex w-full items-center gap-4 rounded-2xl p-5 text-left transition-all duration-300',
                 isSelected
-                  ? 'border border-[#deff9a]/30 bg-[#deff9a]/[0.04] shadow-[0_0_20px_rgba(222,255,154,0.05)]'
+                  ? 'border border-[#7dd3fc]/30 bg-[#7dd3fc]/[0.04] shadow-[0_0_20px_rgba(125,211,252,0.05)]'
                   : 'border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04]',
               )}
             >
               <div
                 className={cn(
                   'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors duration-300',
-                  isSelected ? 'bg-[#deff9a]/10 text-[#deff9a]' : 'bg-white/5 text-neutral-400',
+                  isSelected ? 'bg-[#7dd3fc]/10 text-[#7dd3fc]' : 'bg-white/5 text-neutral-400',
                 )}
               >
                 <Icon className="h-5 w-5" strokeWidth={2} />
@@ -94,7 +94,7 @@ export function ActivityStep({ selectedLevel, onNext, onBack }: ActivityStepProp
         <button
           onClick={() => level && onNext(level)}
           disabled={!level}
-          className="flex-1 rounded-xl border border-[#deff9a]/40 bg-white/[0.04] px-6 py-4 text-sm font-semibold text-white transition-all duration-300 hover:border-[#deff9a]/70 hover:bg-white/[0.07] disabled:opacity-30 disabled:hover:border-[#deff9a]/40 disabled:hover:bg-white/[0.04]"
+          className="flex-1 rounded-xl border border-[#7dd3fc]/40 bg-white/[0.04] px-6 py-4 text-sm font-semibold text-white transition-all duration-300 hover:border-[#7dd3fc]/70 hover:bg-white/[0.07] disabled:opacity-30 disabled:hover:border-[#7dd3fc]/40 disabled:hover:bg-white/[0.04]"
         >
           Continue
         </button>

@@ -12,7 +12,7 @@ interface GoogleSignInButtonProps {
  * Sleek Google OAuth sign-in button.
  *
  * Design: translucent dark surface with white/10 border. On hover,
- * the border shifts to neon #deff9a with a soft glow halo — feels
+ * the border shifts to neon #7dd3fc with a soft glow halo — feels
  * premium and intentional rather than a loud neon block.
  */
 export function GoogleSignInButton({ className }: GoogleSignInButtonProps) {
@@ -27,9 +27,9 @@ export function GoogleSignInButton({ className }: GoogleSignInButtonProps) {
         'rounded-xl bg-white/5 px-5 py-3.5',
         'border border-white/10 text-sm font-medium text-white',
         'transition-all duration-300 ease-out',
-        'hover:border-[#deff9a]/60 hover:text-[#deff9a]',
-        'hover:shadow-[0_0_25px_rgba(222,255,154,0.12)]',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#deff9a]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950',
+        'hover:border-[#7dd3fc]/60 hover:text-[#7dd3fc]',
+        'hover:shadow-[0_0_25px_rgba(125,211,252,0.12)]',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7dd3fc]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950',
         className,
       )}
       aria-label="Sign in with Google"

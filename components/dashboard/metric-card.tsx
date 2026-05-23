@@ -45,7 +45,7 @@ export function MetricCard({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             {icon && (
-              <div className="text-neutral-400 group-hover:text-[#deff9a] transition-colors">
+              <div className="text-neutral-400 group-hover:text-[#7dd3fc] transition-colors">
                 {icon}
               </div>
             )}
@@ -58,7 +58,7 @@ export function MetricCard({
               className={cn(
                 'text-[11px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap',
                 trend.positive !== false
-                  ? 'bg-[#deff9a]/10 text-[#deff9a]'
+                  ? 'bg-[#7dd3fc]/10 text-[#7dd3fc]'
                   : 'bg-red-500/10 text-red-400',
               )}
             >
@@ -90,7 +90,7 @@ export function MetricCard({
       {glow && (
         <div
           className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full opacity-0 blur-[80px] transition-opacity duration-700 group-hover:opacity-[0.04]"
-          style={{ background: 'radial-gradient(circle, #deff9a 0%, transparent 70%)' }}
+          style={{ background: 'radial-gradient(circle, #7dd3fc 0%, transparent 70%)' }}
           aria-hidden="true"
         />
       )}

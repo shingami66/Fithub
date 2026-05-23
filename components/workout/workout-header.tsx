@@ -1,61 +1,63 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Check, X } from 'lucide-react';
+import { ArrowLeft, Check, Clock } from 'lucide-react';
+import Link from 'next/link';
 
 interface WorkoutHeaderProps {
-  workoutName: string;
-  startTime: Date;
+  name: string;
+  isSaving: boolean;
   onFinish: () => void;
-  onCancel: () => void;
+  startTime?: Date;
 }
 
-export function WorkoutHeader({ workoutName, startTime, onFinish, onCancel }: WorkoutHeaderProps) {
+export function WorkoutHeader({ name, isSaving, onFinish, startTime }: WorkoutHeaderProps) {
   const [elapsed, setElapsed] = useState('00:00');
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      const diffMs = Date.now() - startTime.getTime();
-      const minutes = Math.floor(diffMs / 60000);
-      const seconds = Math.floor((diffMs % 60000) / 1000);
-      setElapsed(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+    if (!startTime) return;
+    const interval = setInterval(() => {
+      const diff = Math.floor((new Date().getTime() - startTime.getTime()) / 1000);
+      const m = Math.floor(diff / 60)
+        .toString()
+        .padStart(2, '0');
+      const s = (diff % 60).toString().padStart(2, '0');
+      setElapsed(`${m}:${s}`);
     }, 1000);
-
-    return () => clearInterval(timer);
+    return () => clearInterval(interval);
   }, [startTime]);
 
   return (
-    <div className="sticky top-0 z-50 flex flex-col pt-4 pb-2 bg-neutral-950/80 backdrop-blur-2xl border-b border-white/[0.05]">
-      <div className="flex items-center justify-between px-4 md:px-6">
-        <div className="flex flex-col">
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#deff9a] opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#deff9a]"></span>
-            </span>
-            <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
-              {elapsed}
-            </span>
+    <div className="sticky top-0 z-50 w-full bg-[#050505]/95 backdrop-blur-md border-b border-white/[0.04] safe-top">
+      <div className="max-w-[780px] mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/dashboard"
+            className="p-1 -ml-1 text-neutral-400 hover:text-white transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <div className="flex flex-col">
+            <h1 className="text-base font-bold text-white leading-tight">{name}</h1>
+            <div className="flex items-center gap-1.5 text-xs text-[#7dd3fc] font-medium">
+              <Clock className="w-3 h-3" />
+              <span className="font-mono tracking-wider">{elapsed}</span>
+            </div>
           </div>
-          <h1 className="text-xl md:text-2xl font-bold tracking-tight text-white mt-1">
-            {workoutName}
-          </h1>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onCancel}
-            className="flex items-center justify-center h-10 w-10 rounded-full bg-white/[0.05] text-neutral-400 hover:text-white transition-colors"
-            aria-label="Cancel Workout"
-          >
-            <X className="h-5 w-5" />
-          </button>
+        <div className="flex items-center gap-3">
+          {isSaving && (
+            <span className="text-[10px] uppercase tracking-widest text-neutral-500 font-bold animate-pulse">
+              Saving
+            </span>
+          )}
           <button
             onClick={onFinish}
-            className="flex items-center gap-2 h-10 px-4 rounded-full bg-[#deff9a] text-neutral-950 font-semibold text-sm hover:bg-white active:scale-95 transition-all shadow-[0_0_15px_rgba(222,255,154,0.3)]"
+            className="flex items-center gap-1.5 bg-[#7dd3fc] text-black px-4 py-1.5 rounded-full text-xs font-bold active:scale-95 transition-transform"
           >
-            <Check className="h-4 w-4" strokeWidth={3} />
-            Finish
+            <Check className="w-3.5 h-3.5" />
+            FINISH
           </button>
         </div>
       </div>

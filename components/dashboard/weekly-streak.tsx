@@ -24,7 +24,7 @@ export function WeeklyStreak() {
               borderRadius: '12px',
               boxShadow: '0 10px 40px -10px rgba(0,0,0,0.5)',
             }}
-            itemStyle={{ color: '#deff9a', fontWeight: 'bold' }}
+            itemStyle={{ color: '#7dd3fc', fontWeight: 'bold' }}
             labelStyle={{ color: '#888', marginBottom: '4px' }}
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             formatter={(value: any) => [`${value} Score`, 'Activity']}
@@ -33,9 +33,9 @@ export function WeeklyStreak() {
             {data.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
-                fill={entry.active ? '#deff9a' : 'rgba(255,255,255,0.04)'}
+                fill={entry.active ? '#7dd3fc' : 'rgba(255,255,255,0.04)'}
                 style={{
-                  filter: entry.active ? 'drop-shadow(0 0 8px rgba(222,255,154,0.3))' : 'none',
+                  filter: entry.active ? 'drop-shadow(0 0 8px rgba(125,211,252,0.3))' : 'none',
                   transition: 'all 0.3s ease',
                 }}
               />

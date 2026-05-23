@@ -2,7 +2,7 @@
 
 import { Trophy, TrendingUp } from 'lucide-react';
 
-export function WeeklyPerformance() {
+export function WeeklyPerformance({ streak = 0 }: { streak?: number }) {
   return (
     <div className="bg-[#111111] border border-white/[0.05] rounded-3xl p-6">
       <div className="flex items-center justify-between mb-6">
@@ -12,9 +12,9 @@ export function WeeklyPerformance() {
 
       <div className="flex items-center justify-between">
         <div className="flex flex-col">
-          <span className="text-3xl font-bold text-white">4</span>
+          <span className="text-3xl font-bold text-white">{streak}</span>
           <span className="text-[10px] uppercase tracking-widest text-neutral-500 font-semibold mt-1">
-            Workouts
+            Wk Streak
           </span>
         </div>
 
@@ -32,7 +32,7 @@ export function WeeklyPerformance() {
         <div className="w-px h-12 bg-white/5 mx-4" />
 
         <div className="flex flex-col">
-          <span className="text-3xl font-bold text-[#deff9a] flex items-center gap-1">
+          <span className="text-3xl font-bold text-[#7dd3fc] flex items-center gap-1">
             +12% <TrendingUp className="w-4 h-4" />
           </span>
           <span className="text-[10px] uppercase tracking-widest text-neutral-500 font-semibold mt-1">

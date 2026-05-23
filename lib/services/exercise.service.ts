@@ -1,7 +1,8 @@
 import { Exercise } from '@/types/exercise';
 import { exerciseArraySchema } from '@/lib/validations/exercise';
+import { env } from '@/lib/config/env';
 
-const API_BASE_URL = 'https://exercisedb.p.rapidapi.com';
+const API_BASE_URL = `https://${env.RAPIDAPI_HOST}`;
 
 // Lightweight in-memory cache to prevent redundant API calls
 const cache = new Map<string, { data: Exercise[]; timestamp: number }>();
@@ -9,14 +10,9 @@ const CACHE_TTL_MS = 1000 * 60 * 60; // 1 hour
 
 export class ExerciseService {
   private static getHeaders() {
-    const apiKey = process.env.RAPIDAPI_KEY;
-    if (!apiKey) {
-      console.warn('RAPIDAPI_KEY is missing from environment variables.');
-    }
-
     return {
-      'X-RapidAPI-Key': apiKey || '',
-      'X-RapidAPI-Host': 'exercisedb.p.rapidapi.com',
+      'X-RapidAPI-Key': env.RAPIDAPI_KEY,
+      'X-RapidAPI-Host': env.RAPIDAPI_HOST,
     };
   }
 
@@ -98,6 +94,37 @@ export class ExerciseService {
       return normalized;
     } catch (error) {
       console.error('Failed to get exercises by muscle:', error);
+      return [];
+    }
+  }
+
+  static async getExercisesByBodyPart(bodyPart: string): Promise<Exercise[]> {
+    try {
+      if (!bodyPart.trim()) return [];
+
+      const cacheKey = `bodyPart:${bodyPart.toLowerCase()}`;
+      const cached = this.getFromCache(cacheKey);
+      if (cached) return cached;
+
+      const res = await fetch(
+        `${API_BASE_URL}/exercises/bodyPart/${encodeURIComponent(bodyPart)}?limit=20`,
+        {
+          headers: this.getHeaders(),
+          signal: AbortSignal.timeout(8000),
+        },
+      );
+
+      if (!res.ok) {
+        if (res.status === 404) return [];
+        throw new Error(`Exercise API error: ${res.status}`);
+      }
+
+      const data = await res.json();
+      const normalized = this.normalizeExercises(data);
+      this.setCache(cacheKey, normalized);
+      return normalized;
+    } catch (error) {
+      console.error('Failed to get exercises by body part:', error);
       return [];
     }
   }

@@ -1,91 +1,108 @@
-import { FoodEntity } from '@/types/food';
+export interface Food {
+  id: string;
+  name: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  servingSize: string;
+}
 
-/**
- * NutritionService
- * Abstraction layer for future food API integration (e.g. Edamam, OpenFoodFacts, or USDA).
- */
-export class NutritionService {
-  /**
-   * Search for foods by query string.
-   * Currently mocked, ready for real API integration.
-   */
-  static async searchFoods(query: string): Promise<FoodEntity[]> {
-    if (!query.trim()) return [];
+interface USDAFoodNutrient {
+  nutrientId: number;
+  nutrientName: string;
+  value: number;
+  unitName: string;
+}
 
-    // MOCK DATA for Sprint 8
-    // In the future, this will call `fetch('https://api.edamam.com/...', { ... })`
-    const mockResults: FoodEntity[] = [
-      {
-        id: '1',
-        name: 'Chicken Breast',
-        brand: 'Generic',
-        servingSize: 100,
-        servingUnit: 'g',
-        calories: 165,
-        protein: 31,
-        carbs: 0,
-        fat: 3.6,
-      },
-      {
-        id: '2',
-        name: 'Brown Rice',
-        brand: 'Generic',
-        servingSize: 100,
-        servingUnit: 'g',
-        calories: 111,
-        protein: 2.6,
-        carbs: 23,
-        fat: 0.9,
-      },
-      {
-        id: '3',
-        name: 'Avocado',
-        brand: 'Generic',
-        servingSize: 100,
-        servingUnit: 'g',
-        calories: 160,
-        protein: 2,
-        carbs: 8.5,
-        fat: 14.7,
-      },
-    ].filter((f) => f.name.toLowerCase().includes(query.toLowerCase()));
+interface USDAFood {
+  fdcId: number;
+  description: string;
+  foodNutrients: USDAFoodNutrient[];
+  servingSize?: number;
+  servingSizeUnit?: string;
+  householdServingFullText?: string;
+}
 
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    return mockResults;
+interface USDASearchResponse {
+  totalHits: number;
+  currentPage: number;
+  totalPages: number;
+  foods: USDAFood[];
+}
+
+const USDA_API_KEY = process.env.USDA_API_KEY || 'DEMO_KEY';
+const BASE_URL = 'https://api.nal.usda.gov/fdc/v1';
+
+function parseNutrients(nutrients: USDAFoodNutrient[]): {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+} {
+  let calories = 0;
+  let protein = 0;
+  let carbs = 0;
+  let fat = 0;
+
+  for (const n of nutrients) {
+    const name = n.nutrientName.toLowerCase();
+    if (name.includes('energy') && n.unitName.toLowerCase() === 'kcal') {
+      calories = n.value;
+    } else if (name.includes('protein')) {
+      protein = n.value;
+    } else if (name.includes('carbohydrate')) {
+      carbs = n.value;
+    } else if (name.includes('lipid') || name.includes('fat')) {
+      fat = n.value;
+    }
   }
 
-  /**
-   * Calculate macros when the user changes the serving size.
-   */
-  static calculateMacros(food: FoodEntity, targetServingSize: number): FoodEntity {
-    const ratio = targetServingSize / food.servingSize;
-    return {
-      ...food,
-      servingSize: targetServingSize,
-      calories: Math.round(food.calories * ratio),
-      protein: Math.round(food.protein * ratio * 10) / 10,
-      carbs: Math.round(food.carbs * ratio * 10) / 10,
-      fat: Math.round(food.fat * ratio * 10) / 10,
-    };
-  }
+  return { calories, protein, carbs, fat };
+}
 
-  /**
-   * Normalizes raw API data into our internal FoodEntity schema.
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static normalizeFoodData(raw: any): FoodEntity {
-    return {
-      id: String(raw.id || raw.fdcId || ''),
-      name: String(raw.name || raw.description || ''),
-      brand: raw.brand || raw.brandOwner,
-      servingSize: Number(raw.servingSize || 100),
-      servingUnit: String(raw.servingUnit || 'g'),
-      calories: Number(raw.calories || 0),
-      protein: Number(raw.protein || 0),
-      carbs: Number(raw.carbs || 0),
-      fat: Number(raw.fat || 0),
-      barcode: raw.barcode || raw.gtinUpc,
-    };
+function getServingSize(food: USDAFood): string {
+  if (food.householdServingFullText) {
+    return food.householdServingFullText;
   }
+  if (food.servingSize && food.servingSizeUnit) {
+    return `${food.servingSize} ${food.servingSizeUnit}`;
+  }
+  return '100g';
+}
+
+function mapUSDAFoodToFood(food: USDAFood): Food {
+  const { calories, protein, carbs, fat } = parseNutrients(food.foodNutrients || []);
+  return {
+    id: food.fdcId.toString(),
+    name: food.description,
+    calories: Math.round(calories),
+    protein: Math.round(protein * 10) / 10,
+    carbs: Math.round(carbs * 10) / 10,
+    fat: Math.round(fat * 10) / 10,
+    servingSize: getServingSize(food),
+  };
+}
+
+export async function searchFoods(query: string): Promise<Food[]> {
+  if (!query.trim()) {
+    return [];
+  }
+  const url = `${BASE_URL}/foods/search?query=${encodeURIComponent(query)}&api_key=${USDA_API_KEY}&pageSize=20`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error('Failed to fetch from USDA API');
+  }
+  const data = (await response.json()) as USDASearchResponse;
+  return (data.foods || []).map(mapUSDAFoodToFood);
+}
+
+export async function getFoodById(id: string): Promise<Food> {
+  const url = `${BASE_URL}/food/${encodeURIComponent(id)}?api_key=${USDA_API_KEY}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error('Failed to fetch food details from USDA API');
+  }
+  const food = (await response.json()) as USDAFood;
+  return mapUSDAFoodToFood(food);
 }

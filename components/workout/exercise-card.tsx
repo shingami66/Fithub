@@ -1,84 +1,107 @@
 'use client';
 
-import { ReactNode, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, MoreHorizontal } from 'lucide-react';
-import { cn } from '@/lib/utils/cn';
+import { memo } from 'react';
+import { MoreHorizontal, GripVertical } from 'lucide-react';
+import { SetRow } from './set-row';
+import { ExerciseSet } from '@/types/workout';
+
+import { UIExerciseEntry } from '@/app/dashboard/workout/page';
 
 interface ExerciseCardProps {
-  name: string;
-  targetMuscle: string;
-  order: number;
-  children: ReactNode;
+  entry: UIExerciseEntry;
+  onUpdateSet: (setId: string, updates: Partial<ExerciseSet>) => void;
+  onAddSet: () => void;
 }
 
-export function ExerciseCard({ name, targetMuscle, order, children }: ExerciseCardProps) {
-  const [isExpanded, setIsExpanded] = useState(true);
-
+export const ExerciseCard = memo(function ExerciseCard({
+  entry,
+  onUpdateSet,
+  onAddSet,
+}: ExerciseCardProps) {
   return (
-    <motion.div
-      layout
-      className={cn(
-        'relative flex flex-col w-full rounded-[24px] overflow-hidden',
-        'bg-white/[0.02] border border-white/[0.05] backdrop-blur-xl shadow-lg',
-        'transition-colors duration-300',
-      )}
-    >
+    <div className="bg-[#040816] border border-white/[0.04] rounded-2xl overflow-hidden mb-4 relative group">
       {/* Header */}
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="flex items-center justify-between p-4 sm:p-5 w-full text-left active:bg-white/[0.02] transition-colors"
-      >
+      <div className="flex items-center justify-between p-3 border-b border-white/[0.02]">
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center h-8 w-8 rounded-full bg-white/[0.05] text-xs font-bold text-[#deff9a]">
-            {order}
+          {/* Reorder Handle */}
+          <button className="text-neutral-600 hover:text-white cursor-grab active:cursor-grabbing p-1">
+            <GripVertical className="w-4 h-4" />
+          </button>
+
+          {/* Thumbnail Placeholder */}
+          <div className="w-10 h-10 rounded-lg bg-white/[0.03] border border-white/[0.05] flex items-center justify-center shrink-0">
+            <span className="text-[10px] font-bold text-neutral-500 uppercase">
+              {entry.targetMuscle.slice(0, 3)}
+            </span>
           </div>
+
           <div className="flex flex-col">
-            <h3 className="text-base font-bold text-white leading-none">{name}</h3>
-            <span className="text-xs font-medium text-neutral-500 mt-1 capitalize">
-              {targetMuscle}
+            <h3 className="text-sm font-bold text-white capitalize leading-tight">{entry.name}</h3>
+            <span className="text-[10px] text-neutral-500 uppercase tracking-widest font-semibold mt-0.5">
+              {entry.targetMuscle}
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-neutral-500">
-          <div className="p-2 hover:text-white transition-colors">
-            <MoreHorizontal className="h-5 w-5" />
-          </div>
-          <motion.div
-            animate={{ rotate: isExpanded ? 180 : 0 }}
-            transition={{ duration: 0.3 }}
-            className="p-1"
-          >
-            <ChevronDown className="h-5 w-5" />
-          </motion.div>
-        </div>
+        <button className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 text-neutral-400 transition-colors">
+          <MoreHorizontal className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Sets Header */}
+      <div className="flex items-center px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-neutral-600 bg-white/[0.01]">
+        <span className="w-10 text-center">Set</span>
+        <span className="flex-1 px-4">Previous</span>
+        <span className="w-20 text-center">kg</span>
+        <span className="w-20 text-center">Reps</span>
+        <span className="w-9 text-center">
+          <Check className="w-3 h-3 mx-auto" />
+        </span>
+      </div>
+
+      {/* Sets List */}
+      <div className="flex flex-col px-2 pb-2">
+        {entry.sets.map((set, idx) => (
+          <SetRow
+            key={set.id}
+            index={idx}
+            weight={set.weightKg || 0}
+            reps={set.reps || 0}
+            completed={set.completed}
+            isPR={set.isPR}
+            onUpdate={(w, r) => onUpdateSet(set.id, { weightKg: w, reps: r })}
+            onToggleComplete={() => onUpdateSet(set.id, { completed: !set.completed })}
+          />
+        ))}
+      </div>
+
+      {/* Add Set Button */}
+      <button
+        onClick={onAddSet}
+        className="w-full py-2.5 text-xs font-bold text-[#7dd3fc] bg-[#7dd3fc]/[0.02] hover:bg-[#7dd3fc]/10 transition-colors border-t border-white/[0.02] active:bg-[#7dd3fc]/20"
+      >
+        + ADD SET
       </button>
+    </div>
+  );
+});
 
-      {/* Expandable Body */}
-      <AnimatePresence initial={false}>
-        {isExpanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-          >
-            <div className="px-2 pb-4 sm:px-4 sm:pb-5">
-              {/* Column Headers */}
-              <div className="grid grid-cols-[30px_1fr_1fr_40px] gap-2 px-3 mb-2 text-[10px] font-bold tracking-wider text-neutral-500 uppercase">
-                <span className="text-center">Set</span>
-                <span className="text-center">kg</span>
-                <span className="text-center">Reps</span>
-                <span className="text-center">✔</span>
-              </div>
-
-              {/* The Sets */}
-              <div className="flex flex-col gap-2">{children}</div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+// Inline Check Icon for the header row
+function Check({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
   );
 }

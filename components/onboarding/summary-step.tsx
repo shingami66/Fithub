@@ -37,7 +37,7 @@ export function SummaryStep({ formData, onSubmit, onBack, isSubmitting }: Summar
       <div className="space-y-4">
         {/* Calories Card */}
         <div className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 text-center">
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-32 w-32 rounded-full bg-[#deff9a]/5 blur-3xl" />
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-32 w-32 rounded-full bg-[#7dd3fc]/5 blur-3xl" />
           <p className="relative text-sm font-medium text-neutral-400">Daily Target</p>
           <div className="relative mt-2 flex items-baseline justify-center gap-1">
             <span className="text-5xl font-bold tracking-tighter text-white">
@@ -51,7 +51,7 @@ export function SummaryStep({ formData, onSubmit, onBack, isSubmitting }: Summar
         <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6">
           <p className="mb-5 text-sm font-medium text-neutral-400">Macros Breakdown</p>
           <div className="space-y-4">
-            <MacroRow label="Protein" value={results.macros.protein} color="bg-[#deff9a]/70" />
+            <MacroRow label="Protein" value={results.macros.protein} color="bg-[#7dd3fc]/70" />
             <MacroRow label="Carbs" value={results.macros.carbs} color="bg-sky-400/70" />
             <MacroRow label="Fat" value={results.macros.fat} color="bg-amber-400/70" />
           </div>
@@ -79,10 +79,10 @@ export function SummaryStep({ formData, onSubmit, onBack, isSubmitting }: Summar
         <button
           onClick={onSubmit}
           disabled={isSubmitting}
-          className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#deff9a]/50 bg-white/[0.04] px-6 py-4 text-sm font-semibold text-white transition-all duration-300 hover:border-[#deff9a]/80 hover:bg-white/[0.08] hover:shadow-[0_0_20px_rgba(222,255,154,0.1)] disabled:opacity-50"
+          className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#7dd3fc]/50 bg-white/[0.04] px-6 py-4 text-sm font-semibold text-white transition-all duration-300 hover:border-[#7dd3fc]/80 hover:bg-white/[0.08] hover:shadow-[0_0_20px_rgba(125,211,252,0.1)] disabled:opacity-50"
         >
           {isSubmitting ? (
-            <Loader2 className="h-5 w-5 animate-spin text-[#deff9a]" />
+            <Loader2 className="h-5 w-5 animate-spin text-[#7dd3fc]" />
           ) : (
             'Start My Journey'
           )}

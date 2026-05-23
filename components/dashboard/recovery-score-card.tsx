@@ -4,7 +4,7 @@ import { Activity } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 
 export function RecoveryScoreCard({ score }: { score: number }) {
-  let colorClass = 'text-[#deff9a]';
+  let colorClass = 'text-[#7dd3fc]';
   let label = 'Optimal';
 
   if (score < 40) {

@@ -14,7 +14,7 @@ export function AddSetButton({ onClick }: AddSetButtonProps) {
       className={cn(
         'flex items-center justify-center gap-2 w-full mt-2 h-10 rounded-xl',
         'bg-white/[0.02] text-neutral-400 font-semibold text-xs tracking-wide uppercase',
-        'transition-all duration-300 hover:bg-white/[0.05] hover:text-[#deff9a] active:scale-[0.98]',
+        'transition-all duration-300 hover:bg-white/[0.05] hover:text-[#7dd3fc] active:scale-[0.98]',
       )}
     >
       <Plus className="h-4 w-4" />

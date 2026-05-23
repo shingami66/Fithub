@@ -40,12 +40,12 @@ export function BasicInfoStep({ data, onUpdate, onNext, onBack }: BasicInfoStepP
                 className={cn(
                   'flex flex-col items-center gap-2 rounded-2xl border p-4 transition-all duration-300',
                   isSelected
-                    ? 'border-[#deff9a]/30 bg-[#deff9a]/[0.04] shadow-[0_0_15px_rgba(222,255,154,0.05)]'
+                    ? 'border-[#7dd3fc]/30 bg-[#7dd3fc]/[0.04] shadow-[0_0_15px_rgba(125,211,252,0.05)]'
                     : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04]',
                 )}
               >
                 <User
-                  className={cn('h-6 w-6', isSelected ? 'text-[#deff9a]' : 'text-neutral-500')}
+                  className={cn('h-6 w-6', isSelected ? 'text-[#7dd3fc]' : 'text-neutral-500')}
                 />
                 <span
                   className={cn(
@@ -70,7 +70,7 @@ export function BasicInfoStep({ data, onUpdate, onNext, onBack }: BasicInfoStepP
               placeholder="e.g. 25"
               value={data.age || ''}
               onChange={(e) => onUpdate('age', parseInt(e.target.value) || undefined)}
-              className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] p-4 text-lg text-white placeholder-neutral-600 transition-colors focus:border-[#deff9a]/30 focus:outline-none focus:ring-1 focus:ring-[#deff9a]/10"
+              className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] p-4 text-lg text-white placeholder-neutral-600 transition-colors focus:border-[#7dd3fc]/30 focus:outline-none focus:ring-1 focus:ring-[#7dd3fc]/10"
             />
           </div>
 
@@ -85,7 +85,7 @@ export function BasicInfoStep({ data, onUpdate, onNext, onBack }: BasicInfoStepP
                 placeholder="175"
                 value={data.heightCm || ''}
                 onChange={(e) => onUpdate('heightCm', parseInt(e.target.value) || undefined)}
-                className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] p-4 text-lg text-white placeholder-neutral-600 transition-colors focus:border-[#deff9a]/30 focus:outline-none focus:ring-1 focus:ring-[#deff9a]/10"
+                className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] p-4 text-lg text-white placeholder-neutral-600 transition-colors focus:border-[#7dd3fc]/30 focus:outline-none focus:ring-1 focus:ring-[#7dd3fc]/10"
               />
             </div>
 
@@ -99,7 +99,7 @@ export function BasicInfoStep({ data, onUpdate, onNext, onBack }: BasicInfoStepP
                 placeholder="70"
                 value={data.weightKg || ''}
                 onChange={(e) => onUpdate('weightKg', parseInt(e.target.value) || undefined)}
-                className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] p-4 text-lg text-white placeholder-neutral-600 transition-colors focus:border-[#deff9a]/30 focus:outline-none focus:ring-1 focus:ring-[#deff9a]/10"
+                className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] p-4 text-lg text-white placeholder-neutral-600 transition-colors focus:border-[#7dd3fc]/30 focus:outline-none focus:ring-1 focus:ring-[#7dd3fc]/10"
               />
             </div>
           </div>
@@ -116,7 +116,7 @@ export function BasicInfoStep({ data, onUpdate, onNext, onBack }: BasicInfoStepP
         <button
           onClick={onNext}
           disabled={!isComplete}
-          className="flex-1 rounded-xl border border-[#deff9a]/40 bg-white/[0.04] px-6 py-4 text-sm font-semibold text-white transition-all duration-300 hover:border-[#deff9a]/70 hover:bg-white/[0.07] disabled:opacity-30 disabled:hover:border-[#deff9a]/40 disabled:hover:bg-white/[0.04]"
+          className="flex-1 rounded-xl border border-[#7dd3fc]/40 bg-white/[0.04] px-6 py-4 text-sm font-semibold text-white transition-all duration-300 hover:border-[#7dd3fc]/70 hover:bg-white/[0.07] disabled:opacity-30 disabled:hover:border-[#7dd3fc]/40 disabled:hover:bg-white/[0.04]"
         >
           Continue
         </button>

@@ -2,17 +2,11 @@
 
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
-const data = [
-  { name: 'Mon', calories: 2400 },
-  { name: 'Tue', calories: 2600 },
-  { name: 'Wed', calories: 2200 },
-  { name: 'Thu', calories: 2800 },
-  { name: 'Fri', calories: 2100 },
-  { name: 'Sat', calories: 3000 },
-  { name: 'Sun', calories: 2500 },
-];
+interface CaloriesTrendChartProps {
+  data: { name: string; calories: number }[];
+}
 
-export function CaloriesTrendChart() {
+export function CaloriesTrendChart({ data }: CaloriesTrendChartProps) {
   return (
     <div className="h-[200px] w-full">
       <ResponsiveContainer width="100%" height="100%">

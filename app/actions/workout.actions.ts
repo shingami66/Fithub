@@ -11,24 +11,25 @@ import {
   AddSetInput,
   UpdateSetInput,
 } from '@/lib/validations/workout';
-
-// Ensure strict return types
-export type ActionResponse<T> = { success: true; data: T } | { success: false; error: string };
+import { ActionResult } from '@/lib/validations/common';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type SessionRestoreData = {
-  session: Record<string, any>;
-  entries: Record<string, any>[];
-  sets: Record<string, any>[];
+  session: Record<string, unknown>;
+  entries: Record<string, unknown>[];
+  sets: Record<string, unknown>[];
 };
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type AddExerciseData = { entry: Record<string, any>; initialSet: Record<string, any> };
+export type AddExerciseData = {
+  entry: Record<string, unknown>;
+  initialSet: Record<string, unknown>;
+};
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type AddSetData = Record<string, any>;
+export type AddSetData = Record<string, unknown>;
 
 export async function createOrRestoreSession(
   name: string = 'New Workout',
-): Promise<ActionResponse<SessionRestoreData>> {
+): Promise<ActionResult<SessionRestoreData>> {
   try {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: 'Unauthorized' };
@@ -45,13 +46,13 @@ export async function createOrRestoreSession(
       // Fetch all entries and sets for this session to restore the state
       const entries = await db
         .collection('exercise_entries')
-        .find({ sessionId: existingSession._id.toString() })
+        .find({ sessionId: existingSession._id.toString(), userId: session.user.id })
         .sort({ order: 1 })
         .toArray();
 
       const sets = await db
         .collection('exercise_sets')
-        .find({ sessionId: existingSession._id.toString() })
+        .find({ sessionId: existingSession._id.toString(), userId: session.user.id })
         .sort({ setNumber: 1 })
         .toArray();
 
@@ -96,7 +97,7 @@ export async function createOrRestoreSession(
 
 export async function addExerciseToWorkout(
   input: AddExerciseInput,
-): Promise<ActionResponse<AddExerciseData>> {
+): Promise<ActionResult<AddExerciseData>> {
   try {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: 'Unauthorized' };
@@ -105,6 +106,7 @@ export async function addExerciseToWorkout(
     const db = await getDatabase();
 
     const newEntry = {
+      userId: session.user.id,
       sessionId: validated.sessionId,
       exerciseId: validated.exerciseId,
       name: validated.name,
@@ -118,6 +120,7 @@ export async function addExerciseToWorkout(
 
     // Also create the first set automatically
     const newSet = {
+      userId: session.user.id,
       entryId: res.insertedId.toString(),
       sessionId: validated.sessionId,
       setNumber: 1,
@@ -135,7 +138,7 @@ export async function addExerciseToWorkout(
     await db
       .collection('workout_sessions')
       .updateOne(
-        { _id: new ObjectId(validated.sessionId) },
+        { _id: new ObjectId(validated.sessionId), userId: session.user.id },
         { $set: { lastInteractionAt: new Date(), updatedAt: new Date() } },
       );
 
@@ -152,7 +155,7 @@ export async function addExerciseToWorkout(
   }
 }
 
-export async function addSetToExercise(input: AddSetInput): Promise<ActionResponse<AddSetData>> {
+export async function addSetToExercise(input: AddSetInput): Promise<ActionResult<AddSetData>> {
   try {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: 'Unauthorized' };
@@ -163,6 +166,7 @@ export async function addSetToExercise(input: AddSetInput): Promise<ActionRespon
     // Find previous set to copy weight/reps if needed (optional logic, but handled mostly client-side for UX)
 
     const newSet = {
+      userId: session.user.id,
       entryId: validated.entryId,
       sessionId: validated.sessionId,
       setNumber: validated.setNumber,
@@ -179,7 +183,7 @@ export async function addSetToExercise(input: AddSetInput): Promise<ActionRespon
     await db
       .collection('workout_sessions')
       .updateOne(
-        { _id: new ObjectId(validated.sessionId) },
+        { _id: new ObjectId(validated.sessionId), userId: session.user.id },
         { $set: { lastInteractionAt: new Date(), updatedAt: new Date() } },
       );
 
@@ -193,7 +197,7 @@ export async function addSetToExercise(input: AddSetInput): Promise<ActionRespon
   }
 }
 
-export async function updateSet(input: UpdateSetInput): Promise<ActionResponse<boolean>> {
+export async function updateSet(input: UpdateSetInput): Promise<ActionResult<boolean>> {
   try {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: 'Unauthorized' };
@@ -204,7 +208,7 @@ export async function updateSet(input: UpdateSetInput): Promise<ActionResponse<b
     const { setId, ...updateFields } = validated;
 
     await db.collection('exercise_sets').updateOne(
-      { _id: new ObjectId(setId) },
+      { _id: new ObjectId(setId), userId: session.user.id },
       {
         $set: {
           ...updateFields,
@@ -224,7 +228,7 @@ export async function finishWorkoutSession(
   sessionId: string,
   durationMs: number,
   totalVolumeKg: number,
-): Promise<ActionResponse<boolean>> {
+): Promise<ActionResult<boolean>> {
   try {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: 'Unauthorized' };

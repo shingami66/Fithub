@@ -13,7 +13,7 @@ export default async function OnboardingPage() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center bg-neutral-950 px-4 py-8">
+    <div className="flex min-h-dvh flex-col items-center justify-center bg-[#040816] px-4 py-8">
       {/* Background ambient glow */}
       <div className="pointer-events-none fixed inset-0 z-0" aria-hidden="true">
         <div

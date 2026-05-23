@@ -27,6 +27,12 @@ export const foodEntrySchema = z.object({
   fat: z.number().min(0),
 });
 
+export const foodEntryDBSchema = foodEntrySchema.extend({
+  userId: z.string().min(1),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
 export const nutritionLogSchema = z.object({
   userId: z.string().min(1), // Often injected via server auth, but good to define
   date: z.date(),
@@ -34,6 +40,11 @@ export const nutritionLogSchema = z.object({
   entries: z.array(foodEntrySchema),
   totals: macroTotalsSchema,
   consumedAt: z.date(),
+});
+
+export const nutritionLogDBSchema = nutritionLogSchema.extend({
+  createdAt: z.date(),
+  updatedAt: z.date(),
 });
 
 export type NutritionLogInput = z.infer<typeof nutritionLogSchema>;

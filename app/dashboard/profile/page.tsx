@@ -16,8 +16,8 @@ export default async function ProfilePage() {
 
         {/* User Card */}
         <div className="bg-[#111111] border border-white/[0.05] rounded-3xl p-6 flex items-center gap-4 mb-6">
-          <div className="w-16 h-16 rounded-full bg-[#deff9a]/10 flex items-center justify-center border border-[#deff9a]/20">
-            <User className="w-8 h-8 text-[#deff9a]" />
+          <div className="w-16 h-16 rounded-full bg-[#7dd3fc]/10 flex items-center justify-center border border-[#7dd3fc]/20">
+            <User className="w-8 h-8 text-[#7dd3fc]" />
           </div>
           <div>
             <h2 className="text-lg font-bold text-white">{session.user?.name || 'Athlete'}</h2>

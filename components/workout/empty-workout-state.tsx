@@ -4,7 +4,7 @@ export function EmptyWorkoutState() {
   return (
     <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
       <div className="relative mb-6">
-        <div className="absolute inset-0 rounded-full bg-[#deff9a]/10 blur-2xl" />
+        <div className="absolute inset-0 rounded-full bg-[#7dd3fc]/10 blur-2xl" />
         <div className="relative flex h-20 w-20 items-center justify-center rounded-full border border-white/10 bg-white/[0.02] backdrop-blur-xl">
           <Dumbbell className="h-8 w-8 text-neutral-500" strokeWidth={1.5} />
         </div>

@@ -7,7 +7,7 @@ import { GoalStep } from '@/components/onboarding/goal-step';
 import { BasicInfoStep } from '@/components/onboarding/basic-info-step';
 import { ActivityStep } from '@/components/onboarding/activity-step';
 import { SummaryStep } from '@/components/onboarding/summary-step';
-import { submitOnboarding } from '@/app/(dashboard)/dashboard/onboarding/actions';
+import { submitOnboarding } from '@/app/dashboard/onboarding/actions';
 import type { OnboardingInput } from '@/lib/validations/onboarding';
 
 export function OnboardingShell() {
@@ -69,7 +69,7 @@ export function OnboardingShell() {
           <div
             key={stepIndex}
             className={`h-1 w-12 rounded-full transition-colors duration-500 ${
-              stepIndex <= currentStep ? 'bg-[#deff9a]' : 'bg-white/[0.06]'
+              stepIndex <= currentStep ? 'bg-[#7dd3fc]' : 'bg-white/[0.06]'
             }`}
           />
         ))}
