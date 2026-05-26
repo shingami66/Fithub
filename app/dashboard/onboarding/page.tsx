@@ -1,14 +1,31 @@
 import { redirect } from 'next/navigation';
 import { requireAuth } from '@/lib/auth/auth';
-import { isOnboardingComplete } from '@/lib/services/user-profile.service';
+import { DatabaseUnavailableState } from '@/components/states/database-unavailable-state';
+import { isOnboardingCompleteSafe } from '@/lib/services/user-profile.service';
 import { OnboardingShell } from '@/components/onboarding/onboarding-shell';
 
-export default async function OnboardingPage() {
+export default async function OnboardingPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ edit?: string }>;
+}) {
   const session = await requireAuth();
+  const params = await searchParams;
+  const isEditing = params?.edit === '1';
 
-  const isComplete = await isOnboardingComplete(session.user.id);
+  const isComplete = await isOnboardingCompleteSafe(session.user.id);
 
-  if (isComplete) {
+  if (!isComplete.ok) {
+    return (
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-[#040816] px-4 py-8">
+        <main className="z-10 w-full max-w-[420px]">
+          <DatabaseUnavailableState />
+        </main>
+      </div>
+    );
+  }
+
+  if (isComplete.data && !isEditing) {
     redirect('/dashboard');
   }
 

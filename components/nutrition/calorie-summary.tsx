@@ -16,6 +16,9 @@ interface CalorieSummaryProps {
 }
 
 export function CalorieSummary({ calories, macros }: CalorieSummaryProps) {
+  const caloriePercentage =
+    calories.target > 0 ? Math.min((calories.consumed / calories.target) * 100, 100) : 0;
+
   return (
     <div className="bg-[#040816] border border-white/[0.04] rounded-2xl p-4 flex flex-col gap-5">
       {/* Top Bar: Calories */}
@@ -26,14 +29,16 @@ export function CalorieSummary({ calories, macros }: CalorieSummaryProps) {
           </span>
           <div className="flex items-baseline gap-1">
             <span className="text-2xl font-black text-white">{calories.consumed}</span>
-            <span className="text-xs font-bold text-neutral-500">/ {calories.target} kcal</span>
+            <span className="text-xs font-bold text-neutral-500">
+              {calories.target > 0 ? `/ ${calories.target} kcal` : 'kcal logged'}
+            </span>
           </div>
         </div>
         <div className="w-12 h-12 rounded-full border-[3px] border-[#7dd3fc]/20 flex items-center justify-center relative">
           <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 36 36">
             <path
               className="text-[#7dd3fc]"
-              strokeDasharray={`${(calories.consumed / calories.target) * 100}, 100`}
+              strokeDasharray={`${caloriePercentage}, 100`}
               d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
               fill="none"
               stroke="currentColor"
@@ -60,7 +65,7 @@ export function CalorieSummary({ calories, macros }: CalorieSummaryProps) {
               <div
                 className="h-full rounded-full"
                 style={{
-                  width: `${Math.min((m.consumed / m.target) * 100, 100)}%`,
+                  width: `${m.target > 0 ? Math.min((m.consumed / m.target) * 100, 100) : 0}%`,
                   backgroundColor: m.color,
                 }}
               />

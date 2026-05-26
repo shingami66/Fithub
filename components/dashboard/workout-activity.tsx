@@ -1,19 +1,25 @@
 'use client';
-import { Dumbbell, Timer, Flame } from 'lucide-react';
+
+import { Activity, Dumbbell, Timer } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
+import type { WorkoutActivityItem } from '@/lib/services/analytics.service';
 
-const mockWorkouts = [
-  { id: 1, name: 'Upper Body Power', duration: '45m', cals: 320, time: '2h ago' },
-  { id: 2, name: 'Core & Mobility', duration: '20m', cals: 150, time: 'Yesterday' },
-  { id: 3, name: 'Leg Day Hypertrophy', duration: '60m', cals: 450, time: '2 days ago' },
-];
+export function WorkoutActivity({ workouts }: { workouts: WorkoutActivityItem[] }) {
+  if (workouts.length === 0) {
+    return (
+      <div className="flex min-h-[180px] flex-col items-center justify-center rounded-2xl border border-dashed border-white/[0.06] px-6 text-center">
+        <Dumbbell className="mb-3 h-7 w-7 text-neutral-600" />
+        <p className="text-sm font-semibold text-white">No workout activity yet</p>
+        <p className="mt-1 text-xs text-neutral-500">Saved workout sessions will appear here.</p>
+      </div>
+    );
+  }
 
-export function WorkoutActivity() {
   return (
     <div className="flex flex-col w-full">
-      {mockWorkouts.map((w) => (
+      {workouts.map((workout) => (
         <div
-          key={w.id}
+          key={workout.id}
           className={cn(
             'group flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 transition-all duration-300',
             'border-b border-white/[0.04] last:border-b-0',
@@ -25,18 +31,20 @@ export function WorkoutActivity() {
               <Dumbbell className="h-5 w-5" />
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-sm font-semibold text-white">{w.name}</span>
-              <span className="text-xs font-medium text-neutral-500">{w.time}</span>
+              <span className="text-sm font-semibold text-white">{workout.name}</span>
+              <span className="text-xs font-medium text-neutral-500">
+                {workout.time} - {workout.status}
+              </span>
             </div>
           </div>
           <div className="flex items-center gap-6 sm:gap-8 text-xs font-semibold tracking-wide text-neutral-400">
             <div className="flex items-center gap-2">
               <Timer className="h-4 w-4 text-neutral-500" />
-              <span>{w.duration}</span>
+              <span>{workout.duration}</span>
             </div>
             <div className="flex items-center gap-2">
-              <Flame className="h-4 w-4 text-[#7dd3fc]/70" />
-              <span className="text-white/80">{w.cals} kcal</span>
+              <Activity className="h-4 w-4 text-[#7dd3fc]/70" />
+              <span className="text-white/80">{workout.volumeKg} kg</span>
             </div>
           </div>
         </div>

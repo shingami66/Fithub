@@ -3,7 +3,25 @@
 import { Activity } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 
-export function RecoveryScoreCard({ score }: { score: number }) {
+export function RecoveryScoreCard({ score }: { score: number | null }) {
+  if (score === null) {
+    return (
+      <div className="bg-[#111111] border border-white/[0.05] rounded-3xl p-6 relative overflow-hidden group">
+        <div className="flex justify-between items-start mb-4 relative z-10">
+          <div className="flex items-center gap-2">
+            <Activity className="w-5 h-5 text-neutral-500" />
+            <h3 className="text-sm font-medium text-neutral-400">Recovery Score</h3>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2 relative z-10">
+          <span className="text-5xl font-black tracking-tighter text-neutral-500">N/A</span>
+          <p className="text-xs text-neutral-500">Complete workouts to build recovery history.</p>
+        </div>
+      </div>
+    );
+  }
+
   let colorClass = 'text-[#7dd3fc]';
   let label = 'Optimal';
 

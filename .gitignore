@@ -34,3 +34,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+ 
+# Added for safety
+.env
+scripts/migration-backups/
+.gemini/
+.antigravity/
+.claude/
+.cursor/
+ 
+.vscode/

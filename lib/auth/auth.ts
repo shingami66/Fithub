@@ -4,6 +4,19 @@ import type { Session } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import { getServerSession } from 'next-auth';
 
+const isDevAuthBypassEnabled =
+  process.env.NODE_ENV === 'development' && process.env.DEV_AUTH_BYPASS === 'true';
+
+const devSession: Session = {
+  user: {
+    id: 'dev-test-user',
+    name: 'Dev Test User',
+    email: 'dev-test-user@project-pulse.local',
+    image: null,
+  },
+  expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+};
+
 /**
  * Central NextAuth.js configuration.
  *
@@ -100,6 +113,10 @@ export const authOptions: NextAuthOptions = {
  * }
  */
 export async function auth() {
+  if (isDevAuthBypassEnabled) {
+    return devSession;
+  }
+
   return getServerSession(authOptions);
 }
 

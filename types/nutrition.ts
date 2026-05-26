@@ -7,15 +7,38 @@ export interface MacroTotals {
   fat: number;
 }
 
-export interface FoodEntry {
-  id: string;
-  name: string;
-  servingSize: number;
-  servingUnit: string;
+export interface NutrientsPer100g {
   calories: number;
   protein: number;
   carbs: number;
   fat: number;
+  fiber?: number;
+  sodium?: number;
+}
+
+export type ServingUnit = 'g' | 'cup' | 'piece' | 'tbsp' | 'slice';
+
+export interface ServingUnitOption {
+  unit: ServingUnit;
+  label: string;
+  grams: number;
+}
+
+export interface FoodEntry {
+  id: string;
+  name: string;
+  servingSize: number;
+  servingUnit: ServingUnit;
+  servingDescription?: string;
+  quantity?: number;
+  grams?: number;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber?: number;
+  sodium?: number;
+  nutrientsPer100g?: NutrientsPer100g;
 }
 
 export interface NutritionLog {

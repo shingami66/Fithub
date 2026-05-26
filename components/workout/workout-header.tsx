@@ -1,47 +1,46 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { ArrowLeft, Check, Clock } from 'lucide-react';
+import { ArrowLeft, Check } from 'lucide-react';
 import Link from 'next/link';
+import { useWorkoutState } from '@/lib/store/workout-context';
+import { useLanguage } from '@/hooks/use-language';
 
 interface WorkoutHeaderProps {
   name: string;
   isSaving: boolean;
   onFinish: () => void;
-  startTime?: Date;
 }
 
-export function WorkoutHeader({ name, isSaving, onFinish, startTime }: WorkoutHeaderProps) {
-  const [elapsed, setElapsed] = useState('00:00');
+function formatCount(count: number, singular: string, plural: string) {
+  return `${count} ${count === 1 ? singular : plural}`;
+}
 
-  useEffect(() => {
-    if (!startTime) return;
-    const interval = setInterval(() => {
-      const diff = Math.floor((new Date().getTime() - startTime.getTime()) / 1000);
-      const m = Math.floor(diff / 60)
-        .toString()
-        .padStart(2, '0');
-      const s = (diff % 60).toString().padStart(2, '0');
-      setElapsed(`${m}:${s}`);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [startTime]);
+export function WorkoutHeader({ name, isSaving, onFinish }: WorkoutHeaderProps) {
+  const { status, entryIds, setsByEntryId } = useWorkoutState();
+  const { t } = useLanguage();
+  const setCount = Object.values(setsByEntryId).reduce((total, setIds) => total + setIds.length, 0);
+  const summary = `${formatCount(entryIds.length, t('exercise'), t('exercises'))} · ${formatCount(
+    setCount,
+    t('set'),
+    t('sets'),
+  )}`;
 
   return (
     <div className="sticky top-0 z-50 w-full bg-[#050505]/95 backdrop-blur-md border-b border-white/[0.04] safe-top">
-      <div className="max-w-[780px] mx-auto px-4 h-14 flex items-center justify-between">
+      <div className="max-w-[780px] mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link
             href="/dashboard"
-            className="p-1 -ml-1 text-neutral-400 hover:text-white transition-colors"
+            className="p-1 -ms-1 text-neutral-400 hover:text-white transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div className="flex flex-col">
             <h1 className="text-base font-bold text-white leading-tight">{name}</h1>
-            <div className="flex items-center gap-1.5 text-xs text-[#7dd3fc] font-medium">
-              <Clock className="w-3 h-3" />
-              <span className="font-mono tracking-wider">{elapsed}</span>
+            <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs font-medium text-neutral-500">
+              <span>{t('Today')}</span>
+              <span className="text-neutral-700">/</span>
+              <span className="text-[#7dd3fc]">{summary}</span>
             </div>
           </div>
         </div>
@@ -49,16 +48,19 @@ export function WorkoutHeader({ name, isSaving, onFinish, startTime }: WorkoutHe
         <div className="flex items-center gap-3">
           {isSaving && (
             <span className="text-[10px] uppercase tracking-widest text-neutral-500 font-bold animate-pulse">
-              Saving
+              {t('Saving')}
             </span>
           )}
-          <button
-            onClick={onFinish}
-            className="flex items-center gap-1.5 bg-[#7dd3fc] text-black px-4 py-1.5 rounded-full text-xs font-bold active:scale-95 transition-transform"
-          >
-            <Check className="w-3.5 h-3.5" />
-            FINISH
-          </button>
+          {status !== 'idle' && (
+            <button
+              onClick={onFinish}
+              disabled={isSaving || status === 'completed'}
+              className="flex items-center gap-1.5 bg-[#7dd3fc] text-black px-4 py-1.5 rounded-full text-xs font-bold active:scale-95 transition-transform disabled:opacity-50"
+            >
+              <Check className="w-3.5 h-3.5" />
+              {t('FINISH')}
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -1,14 +1,18 @@
 import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
 import { auth } from '@/lib/auth/auth';
-import { Activity, Flame, Target, Trophy, TrendingUp } from 'lucide-react';
 
 import { DashboardHeader } from '@/components/dashboard/dashboard-header';
-import { MetricCard } from '@/components/dashboard/metric-card';
-import { CalorieRing } from '@/components/dashboard/calorie-ring';
-import { MacroProgress } from '@/components/dashboard/macro-progress';
-import { WorkoutActivity } from '@/components/dashboard/workout-activity';
-import { WeeklyStreak } from '@/components/dashboard/weekly-streak';
 import { FloatingActionButton } from '@/components/dashboard/floating-action-button';
+import { CalorieSummaryWidget } from '@/components/dashboard/server/calorie-summary-widget';
+import { DashboardWidgetSkeleton } from '@/components/dashboard/server/dashboard-widget-skeleton';
+import { RecoveryWidget } from '@/components/dashboard/server/recovery-widget';
+import { WeeklyPerformanceWidget } from '@/components/dashboard/server/weekly-performance-widget';
+import { WorkoutSummaryWidget } from '@/components/dashboard/server/workout-summary-widget';
+import { DatabaseUnavailableState } from '@/components/states/database-unavailable-state';
+import { getUserProfileSafe } from '@/lib/services/user-profile.service';
+
+export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -18,98 +22,71 @@ export default async function DashboardPage() {
   }
 
   const firstName = session.user?.name?.split(' ')[0] ?? 'Athlete';
+  const userId = session.user?.id;
 
-  // Believable mock data for SaaS realism
-  const calorieData = { consumed: 1840, target: 2400 };
-  const macroData = [
-    { label: 'Protein', consumed: 140, target: 180, color: '#7dd3fc' },
-    { label: 'Carbs', consumed: 120, target: 200, color: '#ffffff' },
-    { label: 'Fat', consumed: 50, target: 70, color: '#888888' },
-  ];
+  if (!userId) {
+    redirect('/login');
+  }
+
+  const profileResult = await getUserProfileSafe(userId, { timeoutMs: 1500 });
+
+  if (profileResult.ok && !profileResult.data?.onboardingCompleted) {
+    redirect('/dashboard/onboarding');
+  }
+  const profile = profileResult.ok ? profileResult.data : null;
 
   return (
     <div className="flex flex-col min-h-full">
       <DashboardHeader firstName={firstName} />
 
-      {/* 12-Column Responsive Bento Grid */}
-      <section className="grid grid-cols-12 gap-4 md:gap-5" aria-label="Dashboard overview">
-        {/* Hero Card: Calories */}
-        <MetricCard
-          title="Daily Energy"
-          icon={<Target className="h-4 w-4" />}
-          className="col-span-12 md:col-span-6 lg:col-span-5 min-h-[340px]"
-          delay={0.1}
-          glow
-        >
-          <div className="flex flex-col items-center justify-center h-full">
-            <CalorieRing consumed={calorieData.consumed} target={calorieData.target} />
-            <p className="mt-2 text-sm text-neutral-400 font-medium">
-              <span className="text-white">{calorieData.target - calorieData.consumed} kcal</span>{' '}
-              remaining
-            </p>
-          </div>
-        </MetricCard>
+      {!profileResult.ok || !profile ? (
+        <DatabaseUnavailableState />
+      ) : (
+        <>
+          {/* 12-Column Responsive Bento Grid */}
+          <section
+            className="grid min-w-0 grid-cols-12 gap-4 md:gap-5"
+            aria-label="Dashboard overview"
+          >
+            <Suspense
+              fallback={
+                <>
+                  <DashboardWidgetSkeleton className="col-span-12 min-h-[340px] md:col-span-6 lg:col-span-5" />
+                  <DashboardWidgetSkeleton className="col-span-12 min-h-[340px] md:col-span-6 lg:col-span-4" />
+                </>
+              }
+            >
+              <CalorieSummaryWidget userId={userId} profile={profile} />
+            </Suspense>
 
-        {/* Macros Breakdown */}
-        <MetricCard
-          title="Macronutrients"
-          icon={<Flame className="h-4 w-4" />}
-          className="col-span-12 md:col-span-6 lg:col-span-4 min-h-[340px]"
-          delay={0.2}
-        >
-          <div className="flex flex-col justify-center h-full pt-4">
-            <MacroProgress macros={macroData} />
-          </div>
-        </MetricCard>
+            <Suspense
+              fallback={
+                <DashboardWidgetSkeleton className="col-span-12 min-h-[340px] lg:col-span-3" />
+              }
+            >
+              <WeeklyPerformanceWidget userId={userId} />
+            </Suspense>
 
-        {/* Weekly Streak */}
-        <MetricCard
-          title="Activity Streak"
-          value="4 Days"
-          subtitle="Fire!"
-          icon={<Trophy className="h-4 w-4" />}
-          trend={{ value: 12, label: 'vs last week', positive: true }}
-          className="col-span-12 lg:col-span-3 min-h-[340px]"
-          delay={0.3}
-          glow
-        >
-          <WeeklyStreak />
-        </MetricCard>
+            <Suspense
+              fallback={
+                <DashboardWidgetSkeleton className="col-span-12 min-h-[300px] lg:col-span-8" />
+              }
+            >
+              <WorkoutSummaryWidget userId={userId} />
+            </Suspense>
 
-        {/* Workout Activity Timeline */}
-        <MetricCard
-          title="Recent Activity"
-          icon={<Activity className="h-4 w-4" />}
-          className="col-span-12 lg:col-span-8 min-h-[300px]"
-          delay={0.4}
-        >
-          <div className="mt-2">
-            <WorkoutActivity />
-          </div>
-        </MetricCard>
+            <Suspense
+              fallback={
+                <DashboardWidgetSkeleton className="col-span-12 min-h-[300px] lg:col-span-4" />
+              }
+            >
+              <RecoveryWidget userId={userId} />
+            </Suspense>
+          </section>
 
-        {/* Recovery / Readiness Score */}
-        <MetricCard
-          title="Readiness Score"
-          value="88"
-          subtitle="/ 100"
-          icon={<TrendingUp className="h-4 w-4" />}
-          trend={{ value: 5, label: 'recovery', positive: true }}
-          className="col-span-12 lg:col-span-4 min-h-[300px]"
-          delay={0.5}
-        >
-          <div className="flex flex-col items-center justify-center h-full pb-8">
-            <div className="relative flex items-center justify-center w-full">
-              <div className="absolute inset-0 bg-[#7dd3fc]/5 rounded-full blur-2xl" />
-              <p className="relative text-center text-sm font-medium text-neutral-400 leading-relaxed px-4">
-                Your CNS is fully recovered. You are primed for a high-intensity session today.
-              </p>
-            </div>
-          </div>
-        </MetricCard>
-      </section>
-
-      <FloatingActionButton />
+          <FloatingActionButton />
+        </>
+      )}
     </div>
   );
 }

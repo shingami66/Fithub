@@ -1,47 +1,55 @@
 'use client';
 
-import { Droplet, ShieldCheck } from 'lucide-react';
+import { ClipboardList, ShieldCheck } from 'lucide-react';
+import type { MacroTotals } from '@/types/nutrition';
 
-export function NutritionInsights() {
+interface NutritionInsightsProps {
+  totals: MacroTotals;
+  targets: {
+    protein: number;
+    carbs: number;
+    fat: number;
+  };
+  entryCount: number;
+}
+
+export function NutritionInsights({ totals, targets, entryCount }: NutritionInsightsProps) {
+  const proteinTarget = targets.protein;
+  const proteinProgress =
+    proteinTarget > 0 ? Math.min((totals.protein / proteinTarget) * 100, 100) : 0;
+  const proteinCopy =
+    proteinTarget > 0
+      ? `${Math.max(Math.round(proteinTarget - totals.protein), 0)}g protein remaining today.`
+      : 'No protein target is configured yet.';
+
   return (
     <div className="grid grid-cols-2 gap-3 mb-6">
-      {/* Protein Progress */}
       <div className="bg-[#040816] border border-white/[0.04] rounded-2xl p-4 flex flex-col justify-between min-h-[120px]">
         <div className="flex items-center gap-2 mb-2">
           <ShieldCheck className="w-4 h-4 text-[#7dd3fc]" />
-          <span className="text-xs font-bold text-white">Protein Pace</span>
+          <span className="text-xs font-bold text-white">Protein</span>
         </div>
-        <p className="text-[11px] text-neutral-400 leading-relaxed mb-3">
-          You are 20g ahead of your protein target for this time of day.
-        </p>
+        <p className="text-[11px] text-neutral-400 leading-relaxed mb-3">{proteinCopy}</p>
         <div className="w-full h-1.5 bg-white/[0.05] rounded-full overflow-hidden">
-          <div className="h-full bg-[#7dd3fc] rounded-full w-[70%]" />
+          <div
+            className="h-full bg-[#7dd3fc] rounded-full"
+            style={{ width: `${proteinProgress}%` }}
+          />
         </div>
       </div>
 
-      {/* Hydration */}
       <div className="bg-[#040816] border border-white/[0.04] rounded-2xl p-4 flex flex-col justify-between min-h-[120px]">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <Droplet className="w-4 h-4 text-blue-400" />
-            <span className="text-xs font-bold text-white">Hydration</span>
-          </div>
-          <button className="text-[10px] font-bold text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-full">
-            + 250ml
-          </button>
+        <div className="flex items-center gap-2 mb-2">
+          <ClipboardList className="w-4 h-4 text-neutral-400" />
+          <span className="text-xs font-bold text-white">Logged</span>
         </div>
         <div className="flex items-end gap-1 mb-1">
-          <span className="text-2xl font-black text-white">1.5</span>
-          <span className="text-xs font-bold text-neutral-500 mb-1">/ 3.0 L</span>
+          <span className="text-2xl font-black text-white">{entryCount}</span>
+          <span className="text-xs font-bold text-neutral-500 mb-1">foods</span>
         </div>
-        <div className="flex gap-1">
-          {[1, 2, 3, 4, 5, 6].map((glass, i) => (
-            <div
-              key={i}
-              className={`h-6 flex-1 rounded-sm ${i < 3 ? 'bg-blue-500/80' : 'bg-white/[0.03]'}`}
-            />
-          ))}
-        </div>
+        <p className="text-[11px] text-neutral-400 leading-relaxed">
+          {Math.round(totals.calories)} kcal from saved food entries.
+        </p>
       </div>
     </div>
   );

@@ -1,20 +1,21 @@
 'use client';
-import { ResponsiveContainer, BarChart, Bar, Cell, Tooltip } from 'recharts';
 
-const data = [
-  { day: 'M', active: true, score: 80 },
-  { day: 'T', active: true, score: 95 },
-  { day: 'W', active: false, score: 10 },
-  { day: 'T', active: true, score: 70 },
-  { day: 'F', active: true, score: 100 },
-  { day: 'S', active: false, score: 5 },
-  { day: 'S', active: true, score: 60 },
-];
+import { BarChart, Bar, Cell, Tooltip } from 'recharts';
+import { ChartShell } from '@/components/charts/chart-shell';
+import type { WeeklyActivityPoint } from '@/lib/services/analytics.service';
 
-export function WeeklyStreak() {
+export function WeeklyStreak({ data }: { data: WeeklyActivityPoint[] }) {
+  if (!data.length) {
+    return (
+      <div className="mt-2 flex h-[260px] min-h-[260px] w-full min-w-0 items-center justify-center rounded-xl border border-dashed border-white/[0.06] text-sm text-neutral-500">
+        No activity yet.
+      </div>
+    );
+  }
+
   return (
-    <div className="h-40 w-full mt-2">
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="mt-2 w-full min-w-0">
+      <ChartShell height={260}>
         <BarChart data={data} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
           <Tooltip
             cursor={{ fill: 'rgba(255,255,255,0.02)' }}
@@ -26,8 +27,7 @@ export function WeeklyStreak() {
             }}
             itemStyle={{ color: '#7dd3fc', fontWeight: 'bold' }}
             labelStyle={{ color: '#888', marginBottom: '4px' }}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            formatter={(value: any) => [`${value} Score`, 'Activity']}
+            formatter={(value) => [`${Number(value ?? 0)} Activity`, 'Score']}
           />
           <Bar dataKey="score" radius={[4, 4, 4, 4]} barSize={24}>
             {data.map((entry, index) => (
@@ -42,11 +42,11 @@ export function WeeklyStreak() {
             ))}
           </Bar>
         </BarChart>
-      </ResponsiveContainer>
+      </ChartShell>
       <div className="flex justify-between mt-3 px-2 text-[10px] font-bold tracking-widest text-neutral-600 uppercase">
-        {data.map((d, i) => (
-          <span key={i} className={d.active ? 'text-white' : ''}>
-            {d.day}
+        {data.map((point, index) => (
+          <span key={`${point.day}-${index}`} className={point.active ? 'text-white' : ''}>
+            {point.day}
           </span>
         ))}
       </div>

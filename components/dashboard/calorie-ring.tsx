@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 export function CalorieRing({ consumed, target }: { consumed: number; target: number }) {
   const radius = 64;
   const circumference = 2 * Math.PI * radius;
-  const percentage = Math.min(consumed / target, 1);
+  const percentage = target > 0 ? Math.min(consumed / target, 1) : 0;
   const strokeDashoffset = circumference - percentage * circumference;
 
   return (
@@ -36,7 +36,7 @@ export function CalorieRing({ consumed, target }: { consumed: number; target: nu
       <div className="absolute flex flex-col items-center">
         <span className="text-3xl font-bold text-white">{consumed}</span>
         <span className="text-xs uppercase tracking-[0.1em] text-neutral-500 font-medium mt-1">
-          of {target}
+          {target > 0 ? `of ${target}` : 'logged'}
         </span>
       </div>
     </div>

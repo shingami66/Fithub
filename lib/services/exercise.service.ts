@@ -1,6 +1,8 @@
 import { Exercise } from '@/types/exercise';
 import { exerciseArraySchema } from '@/lib/validations/exercise';
 import { env } from '@/lib/config/env';
+import { logger } from '@/lib/utils/logger';
+import { normalizeOptionalUrl } from '@/lib/utils/url';
 
 const API_BASE_URL = `https://${env.RAPIDAPI_HOST}`;
 
@@ -36,97 +38,81 @@ export class ExerciseService {
   }
 
   static async searchExercises(query: string): Promise<Exercise[]> {
-    try {
-      if (!query.trim()) return [];
+    if (!query.trim()) return [];
 
-      const cacheKey = `search:${query.toLowerCase()}`;
-      const cached = this.getFromCache(cacheKey);
-      if (cached) return cached;
+    const cacheKey = `search:${query.toLowerCase()}`;
+    const cached = this.getFromCache(cacheKey);
+    if (cached) return cached;
 
-      const res = await fetch(
-        `${API_BASE_URL}/exercises/name/${encodeURIComponent(query)}?limit=20`,
-        {
-          headers: this.getHeaders(),
-          // Fallback timeout since fetch doesn't have a default short timeout
-          signal: AbortSignal.timeout(8000),
-        },
-      );
+    const res = await fetch(
+      `${API_BASE_URL}/exercises/name/${encodeURIComponent(query)}?limit=20`,
+      {
+        headers: this.getHeaders(),
+        signal: AbortSignal.timeout(8000),
+      },
+    );
 
-      if (!res.ok) {
-        if (res.status === 404) return []; // Just no results
-        throw new Error(`Exercise API error: ${res.status}`);
-      }
-
-      const data = await res.json();
-      const normalized = this.normalizeExercises(data);
-      this.setCache(cacheKey, normalized);
-      return normalized;
-    } catch (error) {
-      console.error('Failed to search exercises:', error);
-      return []; // Safe fallback
+    if (!res.ok) {
+      if (res.status === 404) return [];
+      throw new Error(`Exercise API error: ${res.status}`);
     }
+
+    const data = await res.json();
+    const normalized = this.normalizeExercises(data);
+    this.setCache(cacheKey, normalized);
+    return normalized;
   }
 
   static async getExercisesByMuscle(targetMuscle: string): Promise<Exercise[]> {
-    try {
-      if (!targetMuscle.trim()) return [];
+    if (!targetMuscle.trim()) return [];
 
-      const cacheKey = `muscle:${targetMuscle.toLowerCase()}`;
-      const cached = this.getFromCache(cacheKey);
-      if (cached) return cached;
+    const cacheKey = `muscle:${targetMuscle.toLowerCase()}`;
+    const cached = this.getFromCache(cacheKey);
+    if (cached) return cached;
 
-      const res = await fetch(
-        `${API_BASE_URL}/exercises/target/${encodeURIComponent(targetMuscle)}?limit=20`,
-        {
-          headers: this.getHeaders(),
-          signal: AbortSignal.timeout(8000),
-        },
-      );
+    const res = await fetch(
+      `${API_BASE_URL}/exercises/target/${encodeURIComponent(targetMuscle)}?limit=20`,
+      {
+        headers: this.getHeaders(),
+        signal: AbortSignal.timeout(8000),
+      },
+    );
 
-      if (!res.ok) {
-        if (res.status === 404) return [];
-        throw new Error(`Exercise API error: ${res.status}`);
-      }
-
-      const data = await res.json();
-      const normalized = this.normalizeExercises(data);
-      this.setCache(cacheKey, normalized);
-      return normalized;
-    } catch (error) {
-      console.error('Failed to get exercises by muscle:', error);
-      return [];
+    if (!res.ok) {
+      if (res.status === 404) return [];
+      throw new Error(`Exercise API error: ${res.status}`);
     }
+
+    const data = await res.json();
+    const normalized = this.normalizeExercises(data);
+    this.setCache(cacheKey, normalized);
+    return normalized;
   }
 
   static async getExercisesByBodyPart(bodyPart: string): Promise<Exercise[]> {
-    try {
-      if (!bodyPart.trim()) return [];
+    if (!bodyPart.trim()) return [];
 
-      const cacheKey = `bodyPart:${bodyPart.toLowerCase()}`;
-      const cached = this.getFromCache(cacheKey);
-      if (cached) return cached;
+    const cacheKey = `bodyPart:${bodyPart.toLowerCase()}`;
+    const cached = this.getFromCache(cacheKey);
+    if (cached) return cached;
 
-      const res = await fetch(
-        `${API_BASE_URL}/exercises/bodyPart/${encodeURIComponent(bodyPart)}?limit=20`,
-        {
-          headers: this.getHeaders(),
-          signal: AbortSignal.timeout(8000),
-        },
-      );
+    const res = await fetch(
+      `${API_BASE_URL}/exercises/bodyPart/${encodeURIComponent(bodyPart)}?limit=20`,
+      {
+        headers: this.getHeaders(),
+        signal: AbortSignal.timeout(8000),
+      },
+    );
 
-      if (!res.ok) {
-        if (res.status === 404) return [];
-        throw new Error(`Exercise API error: ${res.status}`);
-      }
-
-      const data = await res.json();
-      const normalized = this.normalizeExercises(data);
-      this.setCache(cacheKey, normalized);
-      return normalized;
-    } catch (error) {
-      console.error('Failed to get exercises by body part:', error);
-      return [];
+    if (!res.ok) {
+      if (res.status === 404) return [];
+      throw new Error(`Exercise API error: ${res.status}`);
     }
+
+    const data = await res.json();
+    const normalized = this.normalizeExercises(data);
+    this.setCache(cacheKey, normalized);
+    return normalized;
   }
 
   static async getExerciseById(id: string): Promise<Exercise | null> {
@@ -155,29 +141,52 @@ export class ExerciseService {
       }
       return null;
     } catch (error) {
-      console.error('Failed to get exercise by id:', error);
-      return null;
+      logger.errorFingerprint('EXERCISE_API_UNAVAILABLE', 'Failed to get exercise by id', {
+        message: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
     }
   }
 
   private static normalizeExercises(rawArray: Record<string, unknown>[]): Exercise[] {
-    if (!Array.isArray(rawArray)) return [];
+    if (!Array.isArray(rawArray)) {
+      throw new Error('Invalid ExerciseDB response');
+    }
 
-    const mapped = rawArray.map((raw) => ({
-      id: String(raw.id || ''),
-      name: String(raw.name || ''),
-      bodyPart: String(raw.bodyPart || ''),
-      targetMuscle: String(raw.target || ''),
-      equipment: String(raw.equipment || ''),
-      gifUrl: String(raw.gifUrl || ''),
-      instructions: Array.isArray(raw.instructions) ? raw.instructions.map(String) : [],
-    }));
+    const mapped = rawArray.map((raw) => {
+      return {
+        id: String(raw.id || ''),
+        name: String(raw.name || ''),
+        bodyPart: String(raw.bodyPart || ''),
+        targetMuscle: String(raw.target || ''),
+        equipment: String(raw.equipment || ''),
+        gifUrl: normalizeOptionalUrl(raw.gifUrl),
+        imageUrl: normalizeOptionalUrl(raw.imageUrl) ?? normalizeOptionalUrl(raw.image),
+        thumbnailUrl: normalizeOptionalUrl(raw.thumbnailUrl) ?? normalizeOptionalUrl(raw.thumbnail),
+        instructions: Array.isArray(raw.instructions) ? raw.instructions.map(String) : [],
+      };
+    });
+
+    // Safe dev-only logging for debugging ExerciseDB response
+    if (process.env.NODE_ENV === 'development' && mapped.length > 0) {
+      const first = mapped[0];
+      if (first.name.includes('chest') || first.name.includes('صدر')) {
+        logger.debug('ExerciseDB Sample Response (normalized):', {
+          id: first.id,
+          name: first.name,
+          gifUrl: first.gifUrl,
+          bodyPart: first.bodyPart,
+          targetMuscle: first.targetMuscle,
+          equipment: first.equipment,
+        });
+      }
+    }
 
     // Validate through Zod to ensure we don't bleed bad data into the system
     const result = exerciseArraySchema.safeParse(mapped);
     if (!result.success) {
-      console.error('Exercise data validation failed:', result.error);
-      return [];
+      logger.errorFingerprint('EXERCISE_API_UNAVAILABLE', 'Exercise data validation failed');
+      throw new Error('Invalid ExerciseDB response');
     }
 
     return result.data;

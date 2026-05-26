@@ -1,10 +1,10 @@
-export type WorkoutStatus = 'active' | 'completed' | 'cancelled';
+export type WorkoutStatus = 'idle' | 'active' | 'paused' | 'completed' | 'cancelled';
 
 export interface WorkoutSession {
   id: string; // Will map to _id locally but stringified
   userId: string;
   name: string;
-  startedAt: Date;
+  startedAt?: Date;
   endedAt?: Date;
   lastInteractionAt: Date; // CRITICAL for session recovery/autosave
   durationMs: number;
@@ -22,6 +22,9 @@ export interface ExerciseEntry {
   exerciseId: string;
   name: string;
   targetMuscle: string;
+  bodyPart?: string;
+  equipment?: string;
+  gifUrl?: string;
   order: number;
   notes?: string;
   createdAt: Date;

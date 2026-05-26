@@ -1,8 +1,14 @@
 'use client';
 
 import { Trophy, TrendingUp } from 'lucide-react';
+import type { WeeklyPerformanceSummary } from '@/lib/services/analytics.service';
 
-export function WeeklyPerformance({ streak = 0 }: { streak?: number }) {
+export function WeeklyPerformance({ summary }: { summary: WeeklyPerformanceSummary }) {
+  const trendLabel =
+    summary.volumeTrend === null
+      ? 'N/A'
+      : `${summary.volumeTrend > 0 ? '+' : ''}${summary.volumeTrend}%`;
+
   return (
     <div className="bg-[#111111] border border-white/[0.05] rounded-3xl p-6">
       <div className="flex items-center justify-between mb-6">
@@ -12,7 +18,7 @@ export function WeeklyPerformance({ streak = 0 }: { streak?: number }) {
 
       <div className="flex items-center justify-between">
         <div className="flex flex-col">
-          <span className="text-3xl font-bold text-white">{streak}</span>
+          <span className="text-3xl font-bold text-white">{summary.streak}</span>
           <span className="text-[10px] uppercase tracking-widest text-neutral-500 font-semibold mt-1">
             Wk Streak
           </span>
@@ -22,7 +28,10 @@ export function WeeklyPerformance({ streak = 0 }: { streak?: number }) {
 
         <div className="flex flex-col">
           <span className="text-3xl font-bold text-white">
-            12.4<span className="text-lg text-neutral-500 font-medium">k</span>
+            {summary.volumeKg >= 1000 ? (summary.volumeKg / 1000).toFixed(1) : summary.volumeKg}
+            <span className="text-lg text-neutral-500 font-medium">
+              {summary.volumeKg >= 1000 ? 'k' : ''}
+            </span>
           </span>
           <span className="text-[10px] uppercase tracking-widest text-neutral-500 font-semibold mt-1">
             Volume (kg)
@@ -33,7 +42,7 @@ export function WeeklyPerformance({ streak = 0 }: { streak?: number }) {
 
         <div className="flex flex-col">
           <span className="text-3xl font-bold text-[#7dd3fc] flex items-center gap-1">
-            +12% <TrendingUp className="w-4 h-4" />
+            {trendLabel} <TrendingUp className="w-4 h-4" />
           </span>
           <span className="text-[10px] uppercase tracking-widest text-neutral-500 font-semibold mt-1">
             Vs Last Wk

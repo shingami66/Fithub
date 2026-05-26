@@ -4,6 +4,8 @@ export interface Exercise {
   bodyPart: string;
   targetMuscle: string;
   equipment: string;
-  gifUrl: string;
+  gifUrl?: string;
+  imageUrl?: string;
+  thumbnailUrl?: string;
   instructions: string[];
 }

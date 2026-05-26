@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { Loader2 } from 'lucide-react';
-import { calculateBMR, calculateDailyCalories, calculateMacros } from '@/lib/utils/calculations';
+import { calculateNutritionPlan } from '@/lib/utils/calculations';
 import type { OnboardingInput } from '@/lib/validations/onboarding';
 import { cn } from '@/lib/utils/cn';
 
@@ -15,12 +15,7 @@ interface SummaryStepProps {
 
 export function SummaryStep({ formData, onSubmit, onBack, isSubmitting }: SummaryStepProps) {
   const results = useMemo(() => {
-    // We can assume formData is fully populated at this step
-    const bmr = calculateBMR(formData.gender, formData.age, formData.heightCm, formData.weightKg);
-    const calories = calculateDailyCalories(bmr, formData.activityLevel, formData.fitnessGoal);
-    const macros = calculateMacros(calories, formData.fitnessGoal);
-
-    return { calories, macros };
+    return calculateNutritionPlan(formData);
   }, [formData]);
 
   return (
@@ -41,10 +36,15 @@ export function SummaryStep({ formData, onSubmit, onBack, isSubmitting }: Summar
           <p className="relative text-sm font-medium text-neutral-400">Daily Target</p>
           <div className="relative mt-2 flex items-baseline justify-center gap-1">
             <span className="text-5xl font-bold tracking-tighter text-white">
-              {results.calories}
+              {results.dailyCalories}
             </span>
             <span className="text-sm font-medium text-neutral-500">kcal</span>
           </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <MetricPill label="BMR" value={`${results.bmr} kcal`} />
+          <MetricPill label="TDEE" value={`${results.tdee} kcal`} />
         </div>
 
         {/* Macros Card */}
@@ -66,6 +66,16 @@ export function SummaryStep({ formData, onSubmit, onBack, isSubmitting }: Summar
             Activity: {formData.activityLevel.replace('_', ' ')}
           </div>
         </div>
+
+        <div className="rounded-xl border border-white/[0.04] bg-white/[0.01] px-3 py-2 text-center text-xs text-neutral-500">
+          Weekly target: {formatWeeklyTarget(formData.weeklyWeightChange)}
+        </div>
+
+        {results.warning && (
+          <div className="rounded-xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-amber-100">
+            {results.warning}
+          </div>
+        )}
       </div>
 
       <div className="sticky bottom-0 mt-8 flex gap-3 pb-[env(safe-area-inset-bottom)]">
@@ -92,6 +102,15 @@ export function SummaryStep({ formData, onSubmit, onBack, isSubmitting }: Summar
   );
 }
 
+function MetricPill({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-white/[0.04] bg-white/[0.01] px-3 py-3 text-center">
+      <p className="text-xs text-neutral-500">{label}</p>
+      <p className="mt-1 text-sm font-semibold text-white">{value}</p>
+    </div>
+  );
+}
+
 function MacroRow({ label, value, color }: { label: string; value: number; color: string }) {
   // Normalize visually by calculating a max value for the bars (e.g. 250g)
   // This is just a visual trick so the bars aren't all 100% wide
@@ -106,4 +125,17 @@ function MacroRow({ label, value, color }: { label: string; value: number; color
       <span className="w-10 text-right text-sm font-medium text-white">{value}g</span>
     </div>
   );
+}
+
+function formatWeeklyTarget(target: OnboardingInput['weeklyWeightChange']) {
+  const labels: Record<OnboardingInput['weeklyWeightChange'], string> = {
+    lose_0_25: 'lose 0.25 kg/week',
+    lose_0_5: 'lose 0.5 kg/week',
+    lose_1: 'lose 1 kg/week',
+    maintain: 'maintain',
+    gain_0_25: 'gain 0.25 kg/week',
+    gain_0_5: 'gain 0.5 kg/week',
+  };
+
+  return labels[target];
 }

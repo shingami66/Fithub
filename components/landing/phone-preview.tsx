@@ -206,7 +206,7 @@ export function PhonePreview() {
               </PhoneCard>
             </div>
 
-            {/* Bottom nav mock */}
+            {/* Bottom nav preview */}
             <div className="mt-2.5 flex items-center justify-around rounded-2xl border border-white/[0.03] bg-neutral-900/60 py-2.5">
               {['Home', 'Train', 'Eat', 'Me'].map((item) => (
                 <div key={item} className="flex flex-col items-center gap-1">

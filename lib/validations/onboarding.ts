@@ -20,6 +20,12 @@ export const onboardingSchema = z.object({
   fitnessGoal: z.enum(['lose_fat', 'maintain', 'build_muscle'], {
     message: 'Fitness goal is required',
   }),
+  weeklyWeightChange: z.enum(
+    ['lose_0_25', 'lose_0_5', 'lose_1', 'maintain', 'gain_0_25', 'gain_0_5'],
+    {
+      message: 'Weekly target is required',
+    },
+  ),
 });
 
 export type OnboardingInput = z.infer<typeof onboardingSchema>;
@@ -27,6 +33,7 @@ export type OnboardingInput = z.infer<typeof onboardingSchema>;
 export type UserProfile = OnboardingInput & {
   userId: string;
   bmr: number;
+  tdee: number;
   dailyCalories: number;
   macros: {
     protein: number;

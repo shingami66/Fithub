@@ -7,16 +7,19 @@ const ACTIVITY_MULTIPLIERS = {
   very_active: 1.725,
 } as const;
 
-const GOAL_CALORIE_ADJUSTMENTS = {
-  lose_fat: -500,
+const WEEKLY_WEIGHT_CHANGE_ADJUSTMENTS = {
+  lose_0_25: -275,
+  lose_0_5: -550,
+  lose_1: -1100,
   maintain: 0,
-  build_muscle: 300,
+  gain_0_25: 275,
+  gain_0_5: 550,
 } as const;
 
-const GOAL_MACRO_SPLITS = {
-  lose_fat: { protein: 0.4, carbs: 0.3, fat: 0.3 },
-  maintain: { protein: 0.3, carbs: 0.4, fat: 0.3 },
-  build_muscle: { protein: 0.35, carbs: 0.45, fat: 0.2 },
+const PROTEIN_GRAMS_PER_KG = {
+  lose_fat: 2,
+  maintain: 1.6,
+  build_muscle: 1.8,
 } as const;
 
 export function calculateBMR(
@@ -34,13 +37,25 @@ export function calculateBMR(
   return Math.round(bmr);
 }
 
+export function calculateTDEE(
+  bmr: number,
+  activityLevel: OnboardingInput['activityLevel'],
+): number {
+  return Math.round(bmr * ACTIVITY_MULTIPLIERS[activityLevel]);
+}
+
 export function calculateDailyCalories(
   bmr: number,
   activityLevel: OnboardingInput['activityLevel'],
   fitnessGoal: OnboardingInput['fitnessGoal'],
+  weeklyWeightChange: OnboardingInput['weeklyWeightChange'] = fitnessGoal === 'build_muscle'
+    ? 'gain_0_25'
+    : fitnessGoal === 'lose_fat'
+      ? 'lose_0_5'
+      : 'maintain',
 ): number {
-  const tdee = bmr * ACTIVITY_MULTIPLIERS[activityLevel];
-  const adjustedCalories = tdee + GOAL_CALORIE_ADJUSTMENTS[fitnessGoal];
+  const tdee = calculateTDEE(bmr, activityLevel);
+  const adjustedCalories = tdee + WEEKLY_WEIGHT_CHANGE_ADJUSTMENTS[weeklyWeightChange];
 
   // Prevent dangerously low calories
   return Math.max(1200, Math.round(adjustedCalories));
@@ -49,17 +64,48 @@ export function calculateDailyCalories(
 export function calculateMacros(
   dailyCalories: number,
   fitnessGoal: OnboardingInput['fitnessGoal'],
+  weightKg = 70,
 ): { protein: number; carbs: number; fat: number } {
-  const split = GOAL_MACRO_SPLITS[fitnessGoal];
-
-  // Protein: 4 kcal/g, Carbs: 4 kcal/g, Fat: 9 kcal/g
-  const protein = (dailyCalories * split.protein) / 4;
-  const carbs = (dailyCalories * split.carbs) / 4;
-  const fat = (dailyCalories * split.fat) / 9;
+  const protein = Math.round(weightKg * PROTEIN_GRAMS_PER_KG[fitnessGoal]);
+  const fat = Math.round(Math.max(weightKg * 0.6, (dailyCalories * 0.25) / 9));
+  const caloriesAfterProteinAndFat = dailyCalories - protein * 4 - fat * 9;
+  const carbs = Math.max(0, Math.round(caloriesAfterProteinAndFat / 4));
 
   return {
-    protein: Math.round(protein),
-    carbs: Math.round(carbs),
-    fat: Math.round(fat),
+    protein,
+    carbs,
+    fat,
+  };
+}
+
+export function calculateNutritionPlan(data: OnboardingInput): {
+  bmr: number;
+  tdee: number;
+  dailyCalories: number;
+  macros: { protein: number; carbs: number; fat: number };
+  calorieAdjustment: number;
+  warning?: string;
+} {
+  const bmr = calculateBMR(data.gender, data.age, data.heightCm, data.weightKg);
+  const tdee = calculateTDEE(bmr, data.activityLevel);
+  const calorieAdjustment = WEEKLY_WEIGHT_CHANGE_ADJUSTMENTS[data.weeklyWeightChange];
+  const dailyCalories = calculateDailyCalories(
+    bmr,
+    data.activityLevel,
+    data.fitnessGoal,
+    data.weeklyWeightChange,
+  );
+  const macros = calculateMacros(dailyCalories, data.fitnessGoal, data.weightKg);
+
+  return {
+    bmr,
+    tdee,
+    dailyCalories,
+    macros,
+    calorieAdjustment,
+    warning:
+      data.weeklyWeightChange === 'lose_1'
+        ? 'Losing 1 kg per week can be aggressive. Consider a smaller weekly target if recovery, hunger, or training performance suffer.'
+        : undefined,
   };
 }

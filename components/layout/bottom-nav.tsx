@@ -5,16 +5,19 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Home, Dumbbell, UtensilsCrossed, User } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
+import { useLanguage } from '@/hooks/use-language';
+import type { TranslationKey } from '@/lib/i18n/types';
 
 const NAV_ITEMS = [
-  { href: '/dashboard', label: 'Home', icon: Home },
-  { href: '/dashboard/workout', label: 'Workout', icon: Dumbbell },
-  { href: '/dashboard/nutrition', label: 'Nutrition', icon: UtensilsCrossed },
-  { href: '/dashboard/profile', label: 'Profile', icon: User },
+  { href: '/dashboard', label: 'Home' as TranslationKey, icon: Home },
+  { href: '/dashboard/workout', label: 'Workout' as TranslationKey, icon: Dumbbell },
+  { href: '/dashboard/nutrition', label: 'Nutrition' as TranslationKey, icon: UtensilsCrossed },
+  { href: '/dashboard/profile', label: 'Profile' as TranslationKey, icon: User },
 ] as const;
 
 export function BottomNav() {
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   return (
     <nav
@@ -71,7 +74,7 @@ export function BottomNav() {
                   strokeWidth={isActive ? 2.5 : 2}
                   aria-hidden="true"
                 />
-                <span className="md:text-sm">{label}</span>
+                <span className="md:text-sm">{t(label)}</span>
 
                 {/* Desktop active glow background */}
                 {isActive && (

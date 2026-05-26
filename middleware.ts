@@ -1,6 +1,9 @@
 import { withAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
 
+const isDevAuthBypassEnabled =
+  process.env.NODE_ENV === 'development' && process.env.DEV_AUTH_BYPASS === 'true';
+
 /**
  * NextAuth.js middleware for route protection.
  *
@@ -35,6 +38,8 @@ export default withAuth(
   {
     callbacks: {
       authorized({ token }) {
+        if (isDevAuthBypassEnabled) return true;
+
         // `token` is the decoded JWT. If it exists, the user is authenticated.
         return !!token;
       },

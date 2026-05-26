@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils/cn';
 interface GoalStepProps {
   selectedGoal: string | null;
   onNext: (goal: string) => void;
+  onBack: () => void;
 }
 
 const GOALS = [
@@ -30,7 +31,7 @@ const GOALS = [
   },
 ];
 
-export function GoalStep({ selectedGoal, onNext }: GoalStepProps) {
+export function GoalStep({ selectedGoal, onNext, onBack }: GoalStepProps) {
   const [goal, setGoal] = useState<string | null>(selectedGoal);
 
   return (
@@ -75,11 +76,17 @@ export function GoalStep({ selectedGoal, onNext }: GoalStepProps) {
         })}
       </div>
 
-      <div className="sticky bottom-0 mt-8 pb-[env(safe-area-inset-bottom)]">
+      <div className="sticky bottom-0 mt-8 flex gap-3 pb-[env(safe-area-inset-bottom)]">
+        <button
+          onClick={onBack}
+          className="rounded-xl border border-white/[0.06] bg-transparent px-6 py-4 text-sm font-medium text-neutral-400 transition-all hover:bg-white/[0.03] hover:text-white"
+        >
+          Back
+        </button>
         <button
           onClick={() => goal && onNext(goal)}
           disabled={!goal}
-          className="w-full rounded-xl border border-[#7dd3fc]/40 bg-white/[0.04] px-6 py-4 text-sm font-semibold text-white transition-all duration-300 hover:border-[#7dd3fc]/70 hover:bg-white/[0.07] disabled:opacity-30 disabled:hover:border-[#7dd3fc]/40 disabled:hover:bg-white/[0.04]"
+          className="flex-1 rounded-xl border border-[#7dd3fc]/40 bg-white/[0.04] px-6 py-4 text-sm font-semibold text-white transition-all duration-300 hover:border-[#7dd3fc]/70 hover:bg-white/[0.07] disabled:opacity-30 disabled:hover:border-[#7dd3fc]/40 disabled:hover:bg-white/[0.04]"
         >
           Continue
         </button>

@@ -9,7 +9,7 @@ export function RestTimer() {
   const [timeLeft, setTimeLeft] = useState(60);
   const [isOpen, setIsOpen] = useState(false);
 
-  // Simplified mock timer logic for UX
+  // Local countdown logic for the timer controls.
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isActive && timeLeft > 0) {

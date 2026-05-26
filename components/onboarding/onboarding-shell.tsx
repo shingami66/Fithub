@@ -7,6 +7,7 @@ import { GoalStep } from '@/components/onboarding/goal-step';
 import { BasicInfoStep } from '@/components/onboarding/basic-info-step';
 import { ActivityStep } from '@/components/onboarding/activity-step';
 import { SummaryStep } from '@/components/onboarding/summary-step';
+import { WeeklyTargetStep } from '@/components/onboarding/weekly-target-step';
 import { submitOnboarding } from '@/app/dashboard/onboarding/actions';
 import type { OnboardingInput } from '@/lib/validations/onboarding';
 
@@ -34,7 +35,7 @@ export function OnboardingShell() {
     setIsSubmitting(true);
     setError(null);
 
-    // Type casting here as we only reach step 3 when all required data is collected
+    // Type casting here as we only reach summary when all required data is collected
     const result = await submitOnboarding(formData as OnboardingInput);
 
     if (result.success) {
@@ -65,7 +66,7 @@ export function OnboardingShell() {
     <div className="relative overflow-hidden rounded-3xl border border-white/[0.05] bg-white/[0.02] p-6 shadow-2xl backdrop-blur-2xl sm:p-8">
       {/* Progress indicator */}
       <div className="mb-8 flex justify-center gap-2">
-        {[0, 1, 2, 3].map((stepIndex) => (
+        {[0, 1, 2, 3, 4].map((stepIndex) => (
           <div
             key={stepIndex}
             className={`h-1 w-12 rounded-full transition-colors duration-500 ${
@@ -93,22 +94,15 @@ export function OnboardingShell() {
           className="w-full"
         >
           {currentStep === 0 && (
-            <GoalStep
-              selectedGoal={formData.fitnessGoal as string | null}
-              onNext={(goal) => goNext({ fitnessGoal: goal as OnboardingInput['fitnessGoal'] })}
-            />
-          )}
-
-          {currentStep === 1 && (
             <BasicInfoStep
               data={formData}
               onUpdate={(field, value) => setFormData((prev) => ({ ...prev, [field]: value }))}
               onNext={() => goNext({})}
-              onBack={goBack}
+              onBack={() => router.push('/dashboard')}
             />
           )}
 
-          {currentStep === 2 && (
+          {currentStep === 1 && (
             <ActivityStep
               selectedLevel={formData.activityLevel as string | null}
               onNext={(level) =>
@@ -118,7 +112,24 @@ export function OnboardingShell() {
             />
           )}
 
+          {currentStep === 2 && (
+            <GoalStep
+              selectedGoal={formData.fitnessGoal as string | null}
+              onNext={(goal) => goNext({ fitnessGoal: goal as OnboardingInput['fitnessGoal'] })}
+              onBack={goBack}
+            />
+          )}
+
           {currentStep === 3 && (
+            <WeeklyTargetStep
+              fitnessGoal={formData.fitnessGoal}
+              selectedTarget={formData.weeklyWeightChange ?? null}
+              onNext={(weeklyWeightChange) => goNext({ weeklyWeightChange })}
+              onBack={goBack}
+            />
+          )}
+
+          {currentStep === 4 && (
             <SummaryStep
               formData={formData as OnboardingInput}
               onSubmit={handleSubmit}
