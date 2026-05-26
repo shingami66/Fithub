@@ -31,5 +31,6 @@ This document tracks the final production readiness audit prior to the Sprint 25
 - Set `NODE_ENV=production`.
 - Provide all required variables listed in `.env.example` in the deployment environment (e.g. Vercel, Railway).
 - **Ensure `DEV_AUTH_BYPASS=false` (or omit it) in the production environment.**
+- Run a CodeRabbit pull request review before production deployment.
 
 **Risk Report**: LOW. The application is highly secured by Zod module validation for environment variables and safe database wrappers. Auth routing and server action tenant isolation are stable.
