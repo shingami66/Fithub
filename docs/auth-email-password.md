@@ -35,6 +35,12 @@ scrypt:v1:N=16384,r=8,p=1:<saltHex>:<hashHex>
 
 Plain text passwords are never stored. Password hashes, salts, tokens, and secrets must never be logged.
 
+## Password Policy
+
+Registration requires passwords to be at least 8 characters and at most 128 characters.
+
+This release does not enforce character-class complexity rules. That is an accepted tradeoff for usability and compatibility with password managers. Future hardening should add common-password and breached-password checks rather than arbitrary composition rules.
+
 ## Timing Protection
 
 Missing users and provider mismatches still run password verification against a precomputed dummy scrypt hash. This keeps missing-user and wrong-password paths closer in cost and avoids returning before scrypt work is performed.
@@ -63,14 +69,21 @@ If these variables are missing in production, credentials login/register is bloc
 
 Client IP is read-only from request headers, never from body/query/user input.
 
-Priority:
+Production and Vercel priority:
+
+1. `x-vercel-forwarded-for`
+2. `unknown`
+
+In production/Vercel, untrusted fallback headers such as `x-real-ip` and `x-forwarded-for` are not used for rate-limit identity. If the trusted Vercel header is unavailable, credentials auth is rate-limited under the shared `unknown` bucket.
+
+Development priority:
 
 1. `x-vercel-forwarded-for`
 2. `x-real-ip`
 3. `x-forwarded-for`
 4. `unknown`
 
-For comma-separated headers, the first non-empty value is used. If the IP is `unknown`, users share the `unknown` rate-limit bucket.
+For comma-separated headers, the first non-empty value is used.
 
 ## Generic Auth Errors
 

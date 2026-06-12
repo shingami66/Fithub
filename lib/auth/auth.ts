@@ -22,7 +22,6 @@ import {
   validateCredentialsUser,
 } from '@/lib/services/auth-user.service';
 import {
-  RATE_LIMIT_ERROR_CODE,
   auditCredentialsLoginFailure,
   checkLoginRateLimit,
   getClientIpFromHeaders,
@@ -90,7 +89,7 @@ export const authOptions: NextAuthOptions = {
             reason: 'rate_limited',
             ip,
           });
-          throw new Error(RATE_LIMIT_ERROR_CODE);
+          return null;
         }
 
         const result = await validateCredentialsUser(parsed.data.email, parsed.data.password);

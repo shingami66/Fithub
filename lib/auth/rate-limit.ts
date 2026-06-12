@@ -24,17 +24,18 @@ let registerLimiter: Ratelimit | null | undefined;
 let warnedMissingRateLimit = false;
 
 export function getClientIpFromHeaders(headers: Headers): string {
-  for (const header of ['x-vercel-forwarded-for', 'x-real-ip', 'x-forwarded-for']) {
-    const rawValue = headers.get(header);
-    const firstValue = rawValue
-      ?.split(',')
-      .map((value) => value.trim())
-      .find(Boolean);
+  const vercelForwardedFor = getFirstHeaderValue(headers, 'x-vercel-forwarded-for');
+  if (vercelForwardedFor) return vercelForwardedFor;
 
-    if (firstValue) return firstValue;
+  if (isProductionOrVercelRuntime()) {
+    return 'unknown';
   }
 
-  return 'unknown';
+  return (
+    getFirstHeaderValue(headers, 'x-real-ip') ??
+    getFirstHeaderValue(headers, 'x-forwarded-for') ??
+    'unknown'
+  );
 }
 
 export async function checkLoginRateLimit(
@@ -153,4 +154,18 @@ function getRateLimitFailureResult(error: unknown): RateLimitResult {
 
 function getIpBucket(ip: string) {
   return createHash('sha256').update(ip).digest('hex').slice(0, 12);
+}
+
+function getFirstHeaderValue(headers: Headers, header: string): string | null {
+  return (
+    headers
+      .get(header)
+      ?.split(',')
+      .map((value) => value.trim())
+      .find(Boolean) ?? null
+  );
+}
+
+function isProductionOrVercelRuntime() {
+  return process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
 }
