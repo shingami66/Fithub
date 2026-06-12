@@ -69,12 +69,14 @@ If these variables are missing in production, credentials login/register is bloc
 
 Client IP is read-only from request headers, never from body/query/user input.
 
-Production and Vercel priority:
+Vercel runtime priority:
 
 1. `x-vercel-forwarded-for`
-2. `unknown`
+2. `x-forwarded-for`
+3. `x-real-ip`
+4. `unknown`
 
-In production/Vercel, untrusted fallback headers such as `x-real-ip` and `x-forwarded-for` are not used for rate-limit identity. If the trusted Vercel header is unavailable, credentials auth is rate-limited under the shared `unknown` bucket.
+Vercel sets or overwrites forwarded IP headers for deployments, so Vercel Preview and Production use those platform-provided headers for rate-limit identity. Outside Vercel production, forwarded headers are not trusted and the shared `unknown` bucket is used instead.
 
 Development priority:
 
@@ -83,7 +85,7 @@ Development priority:
 3. `x-forwarded-for`
 4. `unknown`
 
-For comma-separated headers, the first non-empty value is used.
+For comma-separated headers, the first non-empty IP-like value is used.
 
 ## Generic Auth Errors
 

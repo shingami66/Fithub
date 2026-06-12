@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { createHash } from 'crypto';
+import { isIP } from 'net';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 import { logger } from '@/lib/utils/logger';
@@ -24,16 +25,23 @@ let registerLimiter: Ratelimit | null | undefined;
 let warnedMissingRateLimit = false;
 
 export function getClientIpFromHeaders(headers: Headers): string {
-  const vercelForwardedFor = getFirstHeaderValue(headers, 'x-vercel-forwarded-for');
-  if (vercelForwardedFor) return vercelForwardedFor;
+  if (isVercelRuntime()) {
+    return (
+      getFirstIpHeaderValue(headers, 'x-vercel-forwarded-for') ??
+      getFirstIpHeaderValue(headers, 'x-forwarded-for') ??
+      getFirstIpHeaderValue(headers, 'x-real-ip') ??
+      'unknown'
+    );
+  }
 
-  if (isProductionOrVercelRuntime()) {
+  if (process.env.NODE_ENV === 'production') {
     return 'unknown';
   }
 
   return (
-    getFirstHeaderValue(headers, 'x-real-ip') ??
-    getFirstHeaderValue(headers, 'x-forwarded-for') ??
+    getFirstIpHeaderValue(headers, 'x-vercel-forwarded-for') ??
+    getFirstIpHeaderValue(headers, 'x-real-ip') ??
+    getFirstIpHeaderValue(headers, 'x-forwarded-for') ??
     'unknown'
   );
 }
@@ -156,16 +164,20 @@ function getIpBucket(ip: string) {
   return createHash('sha256').update(ip).digest('hex').slice(0, 12);
 }
 
-function getFirstHeaderValue(headers: Headers, header: string): string | null {
+function getFirstIpHeaderValue(headers: Headers, header: string): string | null {
   return (
     headers
       .get(header)
       ?.split(',')
       .map((value) => value.trim())
-      .find(Boolean) ?? null
+      .find(isIpLikeValue) ?? null
   );
 }
 
-function isProductionOrVercelRuntime() {
-  return process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
+function isIpLikeValue(value: string) {
+  return isIP(value) !== 0;
+}
+
+function isVercelRuntime() {
+  return Boolean(process.env.VERCEL) || Boolean(process.env.VERCEL_ENV);
 }
