@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils/cn';
 
 const INVALID_LOGIN_MESSAGE = 'Invalid email or password';
 const RATE_LIMIT_MESSAGE = 'Too many attempts. Please try again later.';
+const REGISTER_FAILURE_MESSAGE = 'Registration failed. Please try again.';
 const REGISTER_SUCCESS_MESSAGE = 'Account created successfully. Please sign in.';
 
 type AuthMode = 'login' | 'register';
@@ -37,7 +38,9 @@ export function EmailPasswordAuthForm() {
         const result = await registerWithEmailPassword({ name, email, password });
 
         if (!result.ok) {
-          setError(result.error);
+          setError(
+            result.error === 'Email already exists' ? REGISTER_FAILURE_MESSAGE : result.error,
+          );
           return;
         }
 
@@ -65,9 +68,7 @@ export function EmailPasswordAuthForm() {
         signInResult?.error === 'TooManyAttempts' ? RATE_LIMIT_MESSAGE : INVALID_LOGIN_MESSAGE;
       setError(message);
     } catch {
-      setError(
-        isRegistering ? 'Could not create account. Please try again.' : INVALID_LOGIN_MESSAGE,
-      );
+      setError(isRegistering ? REGISTER_FAILURE_MESSAGE : INVALID_LOGIN_MESSAGE);
       toast.error('Authentication failed. Please try again.');
     } finally {
       setIsSubmitting(false);

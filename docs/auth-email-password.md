@@ -61,7 +61,7 @@ If these variables are missing in production, credentials login/register is bloc
 
 ## Client IP
 
-Client IP is read only from request headers, never from body/query/user input.
+Client IP is read-only from request headers, never from body/query/user input.
 
 Priority:
 
@@ -72,7 +72,7 @@ Priority:
 
 For comma-separated headers, the first non-empty value is used. If the IP is `unknown`, users share the `unknown` rate-limit bucket.
 
-## Generic Login Errors
+## Generic Auth Errors
 
 Credentials login always shows:
 
@@ -82,11 +82,19 @@ Invalid email or password
 
 This avoids revealing whether an email exists, whether a password is wrong, or whether the account belongs to another provider.
 
+Credentials registration also returns a generic failure for duplicate email/collision paths:
+
+```text
+Registration failed. Please try again.
+```
+
+The server still blocks duplicates, but the response avoids confirming whether an email address already has an account.
+
 ## Email Collision Policy
 
 Duplicate emails across providers are blocked.
 
-- If a Google email already exists, credentials registration returns `Email already exists`.
+- If a Google email already exists, credentials registration is blocked with a generic registration failure.
 - If a credentials email already exists, Google sign-in is rejected and the user is told to use email/password.
 
 Account linking is deferred. It should only be added after email verification exists.
@@ -100,7 +108,7 @@ No migration is attempted.
 Optional manual cleanup script:
 
 ```bash
-pnpm dlx tsx scripts/reset-demo-user-data.ts --confirm-demo-reset
+pnpm dlx tsx scripts/reset-demo-user-data.ts --confirm-demo-reset --confirm-db=<dbName>
 ```
 
 The script is for demo/dev data only, does not run automatically, and clears:
@@ -113,6 +121,13 @@ The script is for demo/dev data only, does not run automatically, and clears:
 - `food_entries`
 
 Do not run this script against production data.
+
+The script refuses to run unless:
+
+- `--confirm-demo-reset` is present.
+- `--confirm-db=<dbName>` exactly matches the parsed MongoDB database name.
+- The database name clearly looks non-production, such as a name containing `dev`, `demo`, `test`, `local`, or `staging`.
+- The database name does not look production-like, such as `prod`, `production`, `main`, or `live`.
 
 ## NEXTAUTH_SECRET
 

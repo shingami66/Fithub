@@ -3,6 +3,9 @@ import { join } from 'path';
 import { MongoClient } from 'mongodb';
 
 const CONFIRM_FLAG = '--confirm-demo-reset';
+const DB_CONFIRM_FLAG_PREFIX = '--confirm-db=';
+const ALLOWED_DEMO_DB_NAME_PATTERN = /(dev|demo|test|local|staging)/i;
+const BLOCKED_PRODUCTION_DB_NAME_PATTERN = /(prod|production|main|live)/i;
 const DEMO_COLLECTIONS = [
   'userProfiles',
   'nutrition_logs',
@@ -33,6 +36,8 @@ if (!mongoUri) {
 async function main(uri: string) {
   const dbName =
     new URL(uri.replace('mongodb+srv://', 'https://')).pathname.slice(1) || 'project-pulse';
+  assertSafeDemoDatabase(dbName);
+
   const client = new MongoClient(uri);
 
   try {
@@ -59,6 +64,29 @@ function loadLocalEnv() {
     const key = match[1].trim();
     const value = match[2].trim().replace(/^"|"$/g, '');
     if (!process.env[key]) process.env[key] = value;
+  }
+}
+
+function assertSafeDemoDatabase(dbName: string) {
+  const normalizedDbName = dbName.trim().toLowerCase();
+
+  if (!normalizedDbName) {
+    throw new Error('Refusing reset. Database name could not be determined.');
+  }
+
+  if (BLOCKED_PRODUCTION_DB_NAME_PATTERN.test(normalizedDbName)) {
+    throw new Error('Refusing reset. Database name looks production-like.');
+  }
+
+  if (!ALLOWED_DEMO_DB_NAME_PATTERN.test(normalizedDbName)) {
+    throw new Error(
+      'Refusing reset. Database name must clearly contain dev, demo, test, local, or staging.',
+    );
+  }
+
+  const explicitDbConfirm = process.argv.find((arg) => arg.startsWith(DB_CONFIRM_FLAG_PREFIX));
+  if (explicitDbConfirm !== `${DB_CONFIRM_FLAG_PREFIX}${dbName}`) {
+    throw new Error(`Refusing reset. Re-run with ${DB_CONFIRM_FLAG_PREFIX}${dbName}.`);
   }
 }
 

@@ -20,6 +20,7 @@ const registerSchema = z.object({
   email: z.string().trim().toLowerCase().email(),
   password: z.string().min(8).max(128),
 });
+const REGISTRATION_FAILED_MESSAGE = 'Registration failed. Please try again.';
 
 export type RegisterWithEmailPasswordResult = { ok: true } | { ok: false; error: string };
 
@@ -43,20 +44,20 @@ export async function registerWithEmailPassword(
   try {
     const existingUser = await findUserByEmailNormalized(emailNormalized);
     if (existingUser) {
-      return { ok: false, error: 'Email already exists' };
+      return { ok: false, error: REGISTRATION_FAILED_MESSAGE };
     }
 
     await createCredentialsUser(parsed.data);
     return { ok: true };
   } catch (error) {
     if (error instanceof AuthUserAlreadyExistsError) {
-      return { ok: false, error: 'Email already exists' };
+      return { ok: false, error: REGISTRATION_FAILED_MESSAGE };
     }
 
     logger.error('Email/password registration failed safely.', error, {
       emailNormalized,
     });
 
-    return { ok: false, error: 'Could not create account. Please try again.' };
+    return { ok: false, error: REGISTRATION_FAILED_MESSAGE };
   }
 }

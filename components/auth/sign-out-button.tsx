@@ -9,7 +9,11 @@ export function SignOutButton() {
 
   async function handleSignOut() {
     setIsSigningOut(true);
-    await signOut({ callbackUrl: '/login', redirect: true });
+    try {
+      await signOut({ callbackUrl: '/login', redirect: true });
+    } finally {
+      setIsSigningOut(false);
+    }
   }
 
   return (

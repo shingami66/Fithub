@@ -170,34 +170,50 @@ export async function upsertGoogleUserFromOAuth({
   const now = new Date();
   const filter: Filter<AuthUserDocument> = existingUser
     ? { _id: existingUser._id }
-    : { emailNormalized };
-
-  const result = await users.findOneAndUpdate(
-    filter,
-    {
-      $set: {
-        email: email.trim(),
+    : {
         emailNormalized,
-        authProvider: 'google',
-        name: name?.trim() || existingUser?.name || emailNormalized,
-        image: image ?? existingUser?.image ?? null,
-        updatedAt: now,
-      },
-      $setOnInsert: {
-        createdAt: now,
-      },
-    },
-    {
-      upsert: true,
-      returnDocument: 'after',
-    },
-  );
+        authProvider: { $ne: 'credentials' },
+        passwordHash: { $exists: false },
+      };
 
-  if (!result) {
-    throw new Error('Failed to upsert Google user.');
+  try {
+    const result = await users.findOneAndUpdate(
+      filter,
+      {
+        $set: {
+          email: email.trim(),
+          emailNormalized,
+          authProvider: 'google',
+          name: name?.trim() || existingUser?.name || emailNormalized,
+          image: image ?? existingUser?.image ?? null,
+          updatedAt: now,
+        },
+        $setOnInsert: {
+          createdAt: now,
+        },
+      },
+      {
+        upsert: true,
+        returnDocument: 'after',
+      },
+    );
+
+    if (!result) {
+      throw new Error('Failed to upsert Google user.');
+    }
+
+    if (getUserProvider(result) === 'credentials' || result.passwordHash) {
+      throw new AuthUserAlreadyExistsError();
+    }
+
+    return result;
+  } catch (error) {
+    if (isDuplicateKeyError(error)) {
+      throw new AuthUserAlreadyExistsError();
+    }
+
+    throw error;
   }
-
-  return result;
 }
 
 export async function ensureUsersIndexes() {
