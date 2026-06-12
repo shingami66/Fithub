@@ -33,7 +33,7 @@ export async function registerWithEmailPassword(
   }
 
   const emailNormalized = normalizeEmail(parsed.data.email);
-  const clientIp = getClientIpInfoFromHeaders(headers() as unknown as Headers);
+  const clientIp = getClientIpInfoFromHeaders(headers());
   const rateLimit = await checkRegisterRateLimit(clientIp.value, emailNormalized, {
     ipSource: clientIp.source,
   });

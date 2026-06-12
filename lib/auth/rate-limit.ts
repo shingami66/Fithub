@@ -24,6 +24,9 @@ type ClientIpInfo = {
   value: string;
   source: ClientIpSource;
 };
+type HeaderGetter = {
+  get(name: string): string | null;
+};
 
 let redis: Redis | null | undefined;
 let loginLimiter: Ratelimit | null | undefined;
@@ -31,11 +34,11 @@ let registerIpLimiter: Ratelimit | null | undefined;
 let registerIpEmailLimiter: Ratelimit | null | undefined;
 let warnedMissingRateLimit = false;
 
-export function getClientIpFromHeaders(headers: Headers): string {
+export function getClientIpFromHeaders(headers: HeaderGetter): string {
   return getClientIpInfoFromHeaders(headers).value;
 }
 
-export function getClientIpInfoFromHeaders(headers: Headers): ClientIpInfo {
+export function getClientIpInfoFromHeaders(headers: HeaderGetter): ClientIpInfo {
   if (isVercelRuntime()) {
     return (
       getFirstAvailableHeaderIp(headers, [
@@ -241,13 +244,13 @@ function auditRegistrationRateLimitBlock(
   });
 }
 
-function getFirstIpHeaderValue(headers: Headers, header: string): string | null {
+function getFirstIpHeaderValue(headers: HeaderGetter, header: string): string | null {
   const firstValue = headers.get(header)?.split(',')[0]?.trim();
   return firstValue && isIpLikeValue(firstValue) ? firstValue : null;
 }
 
 function getFirstAvailableHeaderIp(
-  headers: Headers,
+  headers: HeaderGetter,
   headerNames: Exclude<ClientIpSource, 'unknown'>[],
 ): ClientIpInfo | null {
   for (const header of headerNames) {

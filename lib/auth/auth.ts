@@ -80,7 +80,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         const emailNormalized = normalizeEmail(parsed.data.email);
-        const clientIp = getClientIpInfoFromHeaders(headers() as unknown as Headers);
+        const clientIp = getClientIpInfoFromHeaders(headers());
         const rateLimit = await checkLoginRateLimit(clientIp.value, emailNormalized);
 
         if (!rateLimit.ok) {
