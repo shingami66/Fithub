@@ -1,3 +1,10 @@
+/**
+ * NextAuth Type Augmentation
+ *
+ * Shared TypeScript declarations that add session.user.id to NextAuth types.
+ * Auth helpers, Server Components, Server Actions, and Client Components depend
+ * on this so userId is typed everywhere it is read.
+ */
 import type { DefaultSession, DefaultUser } from 'next-auth';
 import type { DefaultJWT } from 'next-auth/jwt';
 
@@ -24,6 +31,6 @@ declare module 'next-auth' {
 declare module 'next-auth/jwt' {
   interface JWT extends DefaultJWT {
     /** MongoDB ObjectId as string, attached during the jwt callback */
-    id: string;
+    id?: string;
   }
 }
