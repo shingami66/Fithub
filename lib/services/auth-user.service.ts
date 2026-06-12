@@ -77,13 +77,13 @@ export async function createCredentialsUser({
   const emailNormalized = normalizeEmail(email);
   await ensureUsersIndexes();
 
+  const now = new Date();
+  const passwordHash = await hashPassword(password);
   const existingUser = await findUserByEmailNormalized(emailNormalized);
   if (existingUser) {
     throw new AuthUserAlreadyExistsError();
   }
 
-  const now = new Date();
-  const passwordHash = await hashPassword(password);
   const users = await getUsersCollection();
 
   try {

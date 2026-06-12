@@ -4,8 +4,8 @@ import { MongoClient } from 'mongodb';
 
 const CONFIRM_FLAG = '--confirm-demo-reset';
 const DB_CONFIRM_FLAG_PREFIX = '--confirm-db=';
-const ALLOWED_DEMO_DB_NAME_PATTERN = /(dev|demo|test|local|staging)/i;
-const BLOCKED_PRODUCTION_DB_NAME_PATTERN = /(prod|production|main|live)/i;
+const ALLOWED_DEMO_DB_NAME_PATTERN = /(?:^|[-_.\s])(dev|demo|test|local|staging)(?:$|[-_.\s])/i;
+const BLOCKED_PRODUCTION_DB_NAME_PATTERN = /(?:^|[-_.\s])(prod|production|main|live)(?:$|[-_.\s])/i;
 const DEMO_COLLECTIONS = [
   'userProfiles',
   'nutrition_logs',
@@ -80,7 +80,7 @@ function assertSafeDemoDatabase(dbName: string) {
 
   if (!ALLOWED_DEMO_DB_NAME_PATTERN.test(normalizedDbName)) {
     throw new Error(
-      'Refusing reset. Database name must clearly contain dev, demo, test, local, or staging.',
+      'Refusing reset. Database name must include a clear dev, demo, test, local, or staging token.',
     );
   }
 

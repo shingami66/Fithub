@@ -9,7 +9,7 @@ Both providers resolve to the same clean user id strategy: `session.user.id` is 
 
 ## Flow
 
-Credentials registration calls `registerWithEmailPassword`, validates the input with Zod, checks duplicate email ownership, hashes the password, and writes a `users` document.
+Credentials registration calls `registerWithEmailPassword`, validates the input with Zod, hashes the password, checks duplicate email ownership, and writes a `users` document.
 
 Credentials login calls `signIn("credentials")`. The provider validates input, applies rate limiting, verifies the password, and returns a user object with MongoDB `_id` as `id`.
 
@@ -102,6 +102,7 @@ Registration failed. Please try again.
 ```
 
 The server still blocks duplicates, but the response avoids confirming whether an email address already has an account.
+Duplicate/collision handling happens after the password hashing work in the credentials user creation path, and duplicate-key races are collapsed into the same generic response.
 
 ## Email Collision Policy
 
@@ -139,8 +140,8 @@ The script refuses to run unless:
 
 - `--confirm-demo-reset` is present.
 - `--confirm-db=<dbName>` exactly matches the parsed MongoDB database name.
-- The database name clearly looks non-production, such as a name containing `dev`, `demo`, `test`, `local`, or `staging`.
-- The database name does not look production-like, such as `prod`, `production`, `main`, or `live`.
+- The database name has a clear non-production token, such as `dev`, `demo`, `test`, `local`, or `staging`, separated by start/end, hyphen, underscore, dot, or whitespace boundaries.
+- The database name does not have a production-like token, such as `prod`, `production`, `main`, or `live`, using the same token boundaries.
 
 ## NEXTAUTH_SECRET
 

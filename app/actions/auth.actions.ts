@@ -5,7 +5,6 @@ import { z } from 'zod/v4';
 import {
   AuthUserAlreadyExistsError,
   createCredentialsUser,
-  findUserByEmailNormalized,
   normalizeEmail,
 } from '@/lib/services/auth-user.service';
 import {
@@ -42,11 +41,6 @@ export async function registerWithEmailPassword(
   }
 
   try {
-    const existingUser = await findUserByEmailNormalized(emailNormalized);
-    if (existingUser) {
-      return { ok: false, error: REGISTRATION_FAILED_MESSAGE };
-    }
-
     await createCredentialsUser(parsed.data);
     return { ok: true };
   } catch (error) {
