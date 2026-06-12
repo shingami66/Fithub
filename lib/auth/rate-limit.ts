@@ -19,30 +19,43 @@ type FailureReason =
   | 'provider_mismatch'
   | 'malformed_hash';
 
+type ClientIpSource = 'x-vercel-forwarded-for' | 'x-forwarded-for' | 'x-real-ip' | 'unknown';
+type ClientIpInfo = {
+  value: string;
+  source: ClientIpSource;
+};
+
 let redis: Redis | null | undefined;
 let loginLimiter: Ratelimit | null | undefined;
-let registerLimiter: Ratelimit | null | undefined;
+let registerIpLimiter: Ratelimit | null | undefined;
+let registerIpEmailLimiter: Ratelimit | null | undefined;
 let warnedMissingRateLimit = false;
 
 export function getClientIpFromHeaders(headers: Headers): string {
+  return getClientIpInfoFromHeaders(headers).value;
+}
+
+export function getClientIpInfoFromHeaders(headers: Headers): ClientIpInfo {
   if (isVercelRuntime()) {
     return (
-      getFirstIpHeaderValue(headers, 'x-vercel-forwarded-for') ??
-      getFirstIpHeaderValue(headers, 'x-forwarded-for') ??
-      getFirstIpHeaderValue(headers, 'x-real-ip') ??
-      'unknown'
+      getFirstAvailableHeaderIp(headers, [
+        'x-vercel-forwarded-for',
+        'x-forwarded-for',
+        'x-real-ip',
+      ]) ?? getUnknownClientIp()
     );
   }
 
   if (process.env.NODE_ENV === 'production') {
-    return 'unknown';
+    return getUnknownClientIp();
   }
 
   return (
-    getFirstIpHeaderValue(headers, 'x-vercel-forwarded-for') ??
-    getFirstIpHeaderValue(headers, 'x-real-ip') ??
-    getFirstIpHeaderValue(headers, 'x-forwarded-for') ??
-    'unknown'
+    getFirstAvailableHeaderIp(headers, [
+      'x-vercel-forwarded-for',
+      'x-real-ip',
+      'x-forwarded-for',
+    ]) ?? getUnknownClientIp()
   );
 }
 
@@ -54,20 +67,40 @@ export async function checkLoginRateLimit(
   if (!limiter) return getUnavailableRateLimitResult();
 
   try {
-    const result = await limiter.limit(`credentials-login:${ip}:${emailNormalized}`);
+    const result = await limiter.limit(
+      `credentials-login:${getCompositeHashBucket([ip, emailNormalized])}`,
+    );
     return result.success ? { ok: true } : { ok: false, reason: 'rate_limited' };
   } catch (error) {
     return getRateLimitFailureResult(error);
   }
 }
 
-export async function checkRegisterRateLimit(ip: string): Promise<RateLimitResult> {
-  const limiter = getRegisterLimiter();
-  if (!limiter) return getUnavailableRateLimitResult();
+export async function checkRegisterRateLimit(
+  ip: string,
+  emailNormalized: string,
+  context: { ipSource: ClientIpSource },
+): Promise<RateLimitResult> {
+  const ipLimiter = getRegisterIpLimiter();
+  const ipEmailLimiter = getRegisterIpEmailLimiter();
+  if (!ipLimiter || !ipEmailLimiter) return getUnavailableRateLimitResult();
 
   try {
-    const result = await limiter.limit(`credentials-register:${ip}`);
-    return result.success ? { ok: true } : { ok: false, reason: 'rate_limited' };
+    const ipResult = await ipLimiter.limit(`credentials-register-ip:${getHashBucket(ip)}`);
+    if (!ipResult.success) {
+      auditRegistrationRateLimitBlock('register-ip', context.ipSource);
+      return { ok: false, reason: 'rate_limited' };
+    }
+
+    const ipEmailResult = await ipEmailLimiter.limit(
+      `credentials-register-ip-email:${getCompositeHashBucket([ip, emailNormalized])}`,
+    );
+    if (!ipEmailResult.success) {
+      auditRegistrationRateLimitBlock('register-ip-email', context.ipSource);
+      return { ok: false, reason: 'rate_limited' };
+    }
+
+    return { ok: true };
   } catch (error) {
     return getRateLimitFailureResult(error);
   }
@@ -83,7 +116,7 @@ export function auditCredentialsLoginFailure({
   ip: string;
 }) {
   logger.warn('Credentials login failed.', {
-    emailNormalized,
+    emailBucket: getHashBucket(emailNormalized),
     reason,
     ipBucket: getIpBucket(ip),
   });
@@ -112,26 +145,41 @@ function getLoginLimiter() {
     ? new Ratelimit({
         redis: client,
         limiter: Ratelimit.slidingWindow(5, '10 m'),
-        prefix: 'project-pulse',
+        prefix: getRateLimitPrefix(),
       })
     : null;
 
   return loginLimiter;
 }
 
-function getRegisterLimiter() {
-  if (registerLimiter !== undefined) return registerLimiter;
+function getRegisterIpLimiter() {
+  if (registerIpLimiter !== undefined) return registerIpLimiter;
 
   const client = getRedis();
-  registerLimiter = client
+  registerIpLimiter = client
     ? new Ratelimit({
         redis: client,
-        limiter: Ratelimit.slidingWindow(3, '1 h'),
-        prefix: 'project-pulse',
+        limiter: Ratelimit.slidingWindow(20, '1 h'),
+        prefix: getRateLimitPrefix(),
       })
     : null;
 
-  return registerLimiter;
+  return registerIpLimiter;
+}
+
+function getRegisterIpEmailLimiter() {
+  if (registerIpEmailLimiter !== undefined) return registerIpEmailLimiter;
+
+  const client = getRedis();
+  registerIpEmailLimiter = client
+    ? new Ratelimit({
+        redis: client,
+        limiter: Ratelimit.slidingWindow(3, '1 h'),
+        prefix: getRateLimitPrefix(),
+      })
+    : null;
+
+  return registerIpEmailLimiter;
 }
 
 function getUnavailableRateLimitResult(): RateLimitResult {
@@ -161,17 +209,57 @@ function getRateLimitFailureResult(error: unknown): RateLimitResult {
 }
 
 function getIpBucket(ip: string) {
-  return createHash('sha256').update(ip).digest('hex').slice(0, 12);
+  return getHashBucket(ip).slice(0, 12);
+}
+
+function getHashBucket(value: string) {
+  return createHash('sha256').update(value).digest('hex');
+}
+
+function getCompositeHashBucket(parts: string[]) {
+  return getHashBucket(parts.join('\0'));
+}
+
+function getRateLimitPrefix() {
+  return `fithub:${getRateLimitEnvironment()}`;
+}
+
+function getRateLimitEnvironment() {
+  const value = process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? 'local';
+  return value.toLowerCase().replace(/[^a-z0-9-]/g, '-') || 'local';
+}
+
+function auditRegistrationRateLimitBlock(
+  rateLimitType: 'register-ip' | 'register-ip-email',
+  ipSource: ClientIpSource,
+) {
+  logger.warn('Credentials registration rate-limited.', {
+    rateLimitType,
+    ipSource,
+    vercelEnv: process.env.VERCEL_ENV ?? 'local',
+    result: 'blocked',
+  });
 }
 
 function getFirstIpHeaderValue(headers: Headers, header: string): string | null {
-  return (
-    headers
-      .get(header)
-      ?.split(',')
-      .map((value) => value.trim())
-      .find(isIpLikeValue) ?? null
-  );
+  const firstValue = headers.get(header)?.split(',')[0]?.trim();
+  return firstValue && isIpLikeValue(firstValue) ? firstValue : null;
+}
+
+function getFirstAvailableHeaderIp(
+  headers: Headers,
+  headerNames: Exclude<ClientIpSource, 'unknown'>[],
+): ClientIpInfo | null {
+  for (const header of headerNames) {
+    const value = getFirstIpHeaderValue(headers, header);
+    if (value) return { value, source: header };
+  }
+
+  return null;
+}
+
+function getUnknownClientIp(): ClientIpInfo {
+  return { value: 'unknown', source: 'unknown' };
 }
 
 function isIpLikeValue(value: string) {

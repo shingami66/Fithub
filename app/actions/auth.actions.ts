@@ -10,7 +10,7 @@ import {
 import {
   RATE_LIMIT_ERROR_MESSAGE,
   checkRegisterRateLimit,
-  getClientIpFromHeaders,
+  getClientIpInfoFromHeaders,
 } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/utils/logger';
 
@@ -33,8 +33,10 @@ export async function registerWithEmailPassword(
   }
 
   const emailNormalized = normalizeEmail(parsed.data.email);
-  const ip = getClientIpFromHeaders(headers() as unknown as Headers);
-  const rateLimit = await checkRegisterRateLimit(ip);
+  const clientIp = getClientIpInfoFromHeaders(headers() as unknown as Headers);
+  const rateLimit = await checkRegisterRateLimit(clientIp.value, emailNormalized, {
+    ipSource: clientIp.source,
+  });
 
   if (!rateLimit.ok) {
     return { ok: false, error: RATE_LIMIT_ERROR_MESSAGE };
@@ -48,9 +50,7 @@ export async function registerWithEmailPassword(
       return { ok: false, error: REGISTRATION_FAILED_MESSAGE };
     }
 
-    logger.error('Email/password registration failed safely.', error, {
-      emailNormalized,
-    });
+    logger.error('Email/password registration failed safely.', error);
 
     return { ok: false, error: REGISTRATION_FAILED_MESSAGE };
   }

@@ -24,7 +24,7 @@ import {
 import {
   auditCredentialsLoginFailure,
   checkLoginRateLimit,
-  getClientIpFromHeaders,
+  getClientIpInfoFromHeaders,
 } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/utils/logger';
 
@@ -80,14 +80,14 @@ export const authOptions: NextAuthOptions = {
         }
 
         const emailNormalized = normalizeEmail(parsed.data.email);
-        const ip = getClientIpFromHeaders(headers() as unknown as Headers);
-        const rateLimit = await checkLoginRateLimit(ip, emailNormalized);
+        const clientIp = getClientIpInfoFromHeaders(headers() as unknown as Headers);
+        const rateLimit = await checkLoginRateLimit(clientIp.value, emailNormalized);
 
         if (!rateLimit.ok) {
           auditCredentialsLoginFailure({
             emailNormalized,
             reason: 'rate_limited',
-            ip,
+            ip: clientIp.value,
           });
           return null;
         }
@@ -98,7 +98,7 @@ export const authOptions: NextAuthOptions = {
           auditCredentialsLoginFailure({
             emailNormalized,
             reason: result.reason,
-            ip,
+            ip: clientIp.value,
           });
           return null;
         }
@@ -159,9 +159,7 @@ export const authOptions: NextAuthOptions = {
           existingUser &&
           (getUserProvider(existingUser) === 'credentials' || existingUser.passwordHash)
         ) {
-          logger.warn('Google sign-in rejected because email belongs to credentials provider.', {
-            emailNormalized,
-          });
+          logger.warn('Google sign-in rejected because email belongs to credentials provider.');
           return '/login?error=ProviderMismatch';
         }
 
@@ -172,18 +170,14 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (getUserProvider(dbUser) === 'credentials' || dbUser.passwordHash) {
-          logger.warn('Google sign-in rejected after user lookup because provider mismatched.', {
-            emailNormalized,
-          });
+          logger.warn('Google sign-in rejected after user lookup because provider mismatched.');
           return '/login?error=ProviderMismatch';
         }
 
         user.id = dbUser._id.toString();
         return true;
       } catch (error) {
-        logger.error('Google sign-in user upsert failed safely.', error, {
-          emailNormalized,
-        });
+        logger.error('Google sign-in user upsert failed safely.', error);
         return '/login?error=OAuthSignin';
       }
     },
@@ -199,9 +193,7 @@ export const authOptions: NextAuthOptions = {
         if (dbUser && getUserProvider(dbUser) === 'google') {
           token.id = dbUser._id.toString();
         } else {
-          logger.warn('Google JWT could not resolve a MongoDB user id safely.', {
-            emailNormalized: normalizeEmail(token.email),
-          });
+          logger.warn('Google JWT could not resolve a MongoDB user id safely.');
           delete (token as JWT & { id?: string }).id;
         }
       }

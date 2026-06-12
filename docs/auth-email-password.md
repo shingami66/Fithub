@@ -54,7 +54,10 @@ Credentials auth uses Upstash Redis and `@upstash/ratelimit`.
 Limits:
 
 - Login: 5 attempts per 10 minutes per `ip + emailNormalized`.
-- Register: 3 attempts per hour per IP.
+- Register global IP layer: 20 attempts per hour per client IP.
+- Register IP + email layer: 3 attempts per hour per `ip + emailNormalized`.
+
+Redis keys are namespaced by environment, for example `fithub:preview` or `fithub:production`, so Preview and Production do not share active rate-limit buckets. Raw IP addresses and raw email addresses are not stored in Redis keys; deterministic server-side SHA-256 hashes are used for key parts.
 
 Required Vercel environment variables:
 
@@ -85,7 +88,7 @@ Development priority:
 3. `x-forwarded-for`
 4. `unknown`
 
-For comma-separated headers, the first non-empty IP-like value is used.
+For comma-separated headers, the first value is trimmed and used only if it is IP-like.
 
 ## Generic Auth Errors
 
