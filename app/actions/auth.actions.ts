@@ -17,7 +17,11 @@ import { logger } from '@/lib/utils/logger';
 const registerSchema = z.object({
   name: z.string().trim().min(2).max(100),
   email: z.string().trim().toLowerCase().email(),
-  password: z.string().min(8).max(128),
+  password: z
+    .string()
+    .min(8)
+    .max(128)
+    .regex(/^[\x21-\x7E]+$/),
 });
 const REGISTRATION_FAILED_MESSAGE = 'Registration failed. Please try again.';
 

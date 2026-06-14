@@ -24,7 +24,7 @@ export async function RecoveryWidget({ userId }: { userId: string }) {
         recoveryResult.ok && recoveryResult.data.recoveryScore !== null ? '/ 100' : undefined
       }
       icon={<TrendingUp className="h-4 w-4" />}
-      className="col-span-12 min-w-0 lg:col-span-4 min-h-[300px]"
+      className="min-h-[300px] min-w-0 sm:col-span-2 lg:col-span-4"
       delay={0.5}
     >
       {recoveryResult.ok ? (

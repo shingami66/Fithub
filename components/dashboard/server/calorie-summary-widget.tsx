@@ -24,7 +24,7 @@ export async function CalorieSummaryWidget({
       <MetricCard
         title="Daily Energy"
         icon={<Target className="h-4 w-4" />}
-        className="col-span-12 md:col-span-6 lg:col-span-9 min-h-[340px]"
+        className="min-h-[340px] min-w-0 sm:col-span-2 lg:col-span-9"
         glow
       >
         <DatabaseUnavailableState className="min-h-[230px] border-dashed bg-transparent" />
@@ -63,7 +63,7 @@ export async function CalorieSummaryWidget({
       <MetricCard
         title="Daily Energy"
         icon={<Target className="h-4 w-4" />}
-        className="col-span-12 min-w-0 md:col-span-6 lg:col-span-5 min-h-[340px]"
+        className="min-h-[340px] min-w-0 sm:col-span-1 lg:col-span-5"
         delay={0.1}
         glow
       >
@@ -87,7 +87,7 @@ export async function CalorieSummaryWidget({
       <MetricCard
         title="Macronutrients"
         icon={<Flame className="h-4 w-4" />}
-        className="col-span-12 min-w-0 md:col-span-6 lg:col-span-4 min-h-[340px]"
+        className="min-h-[340px] min-w-0 sm:col-span-1 lg:col-span-4"
         delay={0.2}
       >
         <div className="flex h-full flex-col justify-center pt-4">

@@ -15,7 +15,7 @@ export async function WorkoutSummaryWidget({ userId }: { userId: string }) {
     <MetricCard
       title="Recent Activity"
       icon={<Activity className="h-4 w-4" />}
-      className="col-span-12 min-w-0 lg:col-span-8 min-h-[300px]"
+      className="min-h-[300px] min-w-0 sm:col-span-2 lg:col-span-8"
       delay={0.4}
     >
       <div className="mt-2">

@@ -3,7 +3,7 @@ import { BottomNav } from '@/components/layout/bottom-nav';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="relative flex min-h-dvh flex-col bg-[#040816]">
+    <div className="relative flex min-h-dvh w-full max-w-full flex-col overflow-x-hidden bg-[#040816]">
       {/* Global Atmospheric Lighting */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
         {/* Top central soft glow */}
@@ -23,8 +23,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       </div>
 
       {/* Main app container - Centered and constrained for desktop */}
-      <div className="relative z-10 flex flex-1 flex-col mx-auto w-full max-w-screen-2xl">
-        <main className="flex-1 overflow-y-auto px-4 py-6 md:px-6 md:py-8 lg:px-8 lg:py-10 pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-32">
+      <div className="relative z-10 mx-auto flex w-full max-w-screen-2xl min-w-0 flex-1 flex-col overflow-x-hidden">
+        <main className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto px-4 py-6 pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:px-6 md:py-8 md:pb-32 lg:px-8 lg:py-10">
           {children}
         </main>
       </div>
