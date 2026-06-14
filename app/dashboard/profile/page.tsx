@@ -1,13 +1,21 @@
+/**
+ * ProfilePage
+ *
+ * Protected Server Component for "/dashboard/profile".
+ * It reads the user's saved onboarding profile, shows derived nutrition
+ * targets, and includes client language/sign-out controls.
+ */
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import type React from 'react';
-import { Activity, ArrowRight, Flame, LogOut, Settings, Shield, Target, User } from 'lucide-react';
+import { Activity, ArrowRight, Flame, Settings, Shield, Target, User } from 'lucide-react';
 import { DatabaseUnavailableState } from '@/components/states/database-unavailable-state';
 import { auth } from '@/lib/auth/auth';
 import { getUserProfileSafe } from '@/lib/services/user-profile.service';
 import type { OnboardingInput } from '@/lib/validations/onboarding';
 import { Translate } from '@/components/ui/translate';
 import { LanguageToggle } from '@/components/ui/language-toggle';
+import { SignOutButton } from '@/components/auth/sign-out-button';
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -16,6 +24,7 @@ export default async function ProfilePage() {
     redirect('/login');
   }
 
+  // Profile documents are keyed by userId, which keeps each user's plan isolated.
   const profileResult = await getUserProfileSafe(session.user.id, { timeoutMs: 1500 });
   if (!profileResult.ok) {
     return (
@@ -124,15 +133,7 @@ export default async function ProfilePage() {
           {/* Language Toggle inserted here */}
           <LanguageToggle />
 
-          <Link
-            href="/api/auth/signout"
-            className="flex w-full items-center gap-4 p-5 text-left text-[#ff9a9a] transition-colors hover:bg-[#ff9a9a]/5"
-          >
-            <LogOut className="h-5 w-5" />
-            <span className="text-sm font-medium">
-              <Translate tKey="Sign Out" />
-            </span>
-          </Link>
+          <SignOutButton />
         </section>
       </div>
     </div>

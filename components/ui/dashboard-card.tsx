@@ -27,7 +27,7 @@ export function DashboardCard({
         ease: [0.25, 0.1, 0.25, 1],
       }}
       className={cn(
-        'group relative overflow-hidden rounded-3xl p-6 sm:p-8',
+        'group relative min-w-0 overflow-hidden rounded-3xl p-6 sm:p-8',
         /* Premium Layered Glassmorphism */
         'bg-white/[0.02] border border-white/[0.06] backdrop-blur-2xl',
         'shadow-[inset_0_1px_1px_rgba(255,255,255,0.08),0_4px_24px_-4px_rgba(0,0,0,0.4)]',
@@ -50,7 +50,7 @@ export function DashboardCard({
         />
       )}
 
-      <div className="relative z-10 h-full">{children}</div>
+      <div className="relative z-10 h-full min-w-0">{children}</div>
     </motion.div>
   );
 }

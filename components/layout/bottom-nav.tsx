@@ -28,23 +28,26 @@ export function BottomNav() {
         'border-t border-white/[0.05] bg-[#040816]/80 backdrop-blur-xl',
         'pb-[env(safe-area-inset-bottom)]',
         // Desktop behavior: floating dock
-        'md:bottom-8 md:left-1/2 md:right-auto md:w-auto md:-translate-x-1/2',
+        'md:bottom-8 md:left-1/2 md:right-auto md:w-auto md:max-w-[calc(100vw-2rem)] md:-translate-x-1/2',
         'md:rounded-2xl md:border md:border-white/10 md:bg-white/[0.02] md:backdrop-blur-2xl md:shadow-2xl md:pb-0',
         'md:px-2 md:py-2',
       )}
       aria-label="Main navigation"
     >
-      <ul className="flex items-center justify-around md:justify-center md:gap-2" role="list">
+      <ul
+        className="flex min-w-0 items-center justify-around md:justify-center md:gap-2"
+        role="list"
+      >
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const isActive =
             pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
 
           return (
-            <li key={href}>
+            <li key={href} className="min-w-0">
               <Link
                 href={href}
                 className={cn(
-                  'group relative flex flex-col md:flex-row items-center gap-1 md:gap-2.5 px-4 md:px-5 py-3 md:py-2.5',
+                  'group relative flex min-w-0 flex-col items-center gap-1 px-3 py-3 sm:px-4 md:flex-row md:gap-2.5 md:px-5 md:py-2.5',
                   'rounded-xl text-xs font-medium transition-all duration-300',
                   isActive
                     ? 'text-white md:bg-white/[0.06]'
@@ -74,7 +77,7 @@ export function BottomNav() {
                   strokeWidth={isActive ? 2.5 : 2}
                   aria-hidden="true"
                 />
-                <span className="md:text-sm">{t(label)}</span>
+                <span className="max-w-full truncate md:text-sm">{t(label)}</span>
 
                 {/* Desktop active glow background */}
                 {isActive && (

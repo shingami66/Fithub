@@ -6,10 +6,10 @@ export function DashboardHeader({ firstName }: { firstName: string }) {
   }).format(new Date());
 
   return (
-    <header className="flex items-center justify-between mb-8">
-      <div className="space-y-1">
+    <header className="mb-8 flex min-w-0 items-center justify-between gap-4">
+      <div className="min-w-0 space-y-1">
         <p className="text-sm font-semibold tracking-wide text-neutral-500 uppercase">{today}</p>
-        <h1 className="bg-gradient-to-b from-white to-white/60 bg-clip-text text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight leading-none text-transparent">
+        <h1 className="break-words bg-gradient-to-b from-white to-white/60 bg-clip-text text-3xl font-bold leading-tight tracking-tight text-transparent sm:text-4xl lg:text-5xl">
           Welcome, {firstName}
         </h1>
       </div>

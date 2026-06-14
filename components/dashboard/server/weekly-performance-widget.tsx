@@ -20,7 +20,7 @@ export async function WeeklyPerformanceWidget({ userId }: { userId: string }) {
       value={weeklyActivityResult.ok ? `${activeDays} Days` : undefined}
       subtitle={weeklyActivityResult.ok ? 'This week' : undefined}
       icon={<Trophy className="h-4 w-4" />}
-      className="col-span-12 min-w-0 lg:col-span-3 min-h-[340px]"
+      className="min-h-[340px] min-w-0 sm:col-span-2 lg:col-span-3"
       delay={0.3}
       glow
     >

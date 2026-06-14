@@ -32,7 +32,7 @@ export function MetricCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.7, delay, ease: [0.25, 0.1, 0.25, 1] }}
       className={cn(
-        'group relative flex flex-col overflow-hidden rounded-[28px] p-6 sm:p-8',
+        'group relative flex min-w-0 flex-col overflow-hidden rounded-[28px] p-6 sm:p-8',
         'bg-white/[0.03] border border-white/[0.06] backdrop-blur-2xl',
         'shadow-[0_20px_80px_-20px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.08)]',
         'transition-all duration-700 ease-out hover:-translate-y-1',
@@ -40,16 +40,16 @@ export function MetricCard({
         className,
       )}
     >
-      <div className="relative z-10 flex flex-col h-full gap-4">
+      <div className="relative z-10 flex h-full min-w-0 flex-col gap-4">
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2">
             {icon && (
               <div className="text-neutral-400 group-hover:text-[#7dd3fc] transition-colors">
                 {icon}
               </div>
             )}
-            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-400">
+            <span className="min-w-0 break-words text-xs font-semibold uppercase tracking-[0.18em] text-neutral-400">
               {title}
             </span>
           </div>
@@ -71,7 +71,7 @@ export function MetricCard({
         {/* Primary Metric */}
         {(value !== undefined || subtitle) && (
           <div className="mt-auto pt-2">
-            <div className="flex items-baseline gap-2">
+            <div className="flex min-w-0 flex-wrap items-baseline gap-2">
               {value !== undefined && (
                 <span className="text-4xl sm:text-5xl font-bold tracking-tight text-white">
                   {value}

@@ -1,4 +1,12 @@
+/**
+ * Environment Configuration
+ *
+ * Server-only Zod validation for required Vercel/local environment variables.
+ * API routes, services, auth, and database code depend on this file to fail
+ * fast when a required secret or endpoint is missing.
+ */
 import 'server-only';
+// server-only prevents accidental imports from Client Components and keeps secrets server-side.
 import { z } from 'zod/v4';
 
 /**
@@ -20,7 +28,7 @@ const envSchema = z.object({
   /** Secret used by NextAuth.js to sign/encrypt session tokens. */
   NEXTAUTH_SECRET: z
     .string()
-    .min(16, 'NEXTAUTH_SECRET must be at least 16 characters for security'),
+    .min(32, 'NEXTAUTH_SECRET must be at least 32 characters for security'),
 
   /** App URL used by NextAuth callbacks. */
   NEXTAUTH_URL: z.string().url('NEXTAUTH_URL must be a valid URL').default('http://localhost:3000'),
@@ -51,6 +59,24 @@ const envSchema = z.object({
 
   /** Development-only auth bypass switch for local QA. */
   DEV_AUTH_BYPASS: z.enum(['true', 'false']).default('false'),
+
+  /** Upstash Redis REST URL used for credentials auth rate limiting. */
+  UPSTASH_REDIS_REST_URL: z.string().url('UPSTASH_REDIS_REST_URL must be a valid URL').optional(),
+
+  /** Upstash Redis REST token used for credentials auth rate limiting. */
+  UPSTASH_REDIS_REST_TOKEN: z.string().min(1, 'UPSTASH_REDIS_REST_TOKEN is required').optional(),
+
+  /** Vercel Upstash integration REST API URL used for credentials auth rate limiting. */
+  UPSTASH_REDIS_REST_KV_REST_API_URL: z
+    .string()
+    .url('UPSTASH_REDIS_REST_KV_REST_API_URL must be a valid URL')
+    .optional(),
+
+  /** Vercel Upstash integration REST API token used for credentials auth rate limiting. */
+  UPSTASH_REDIS_REST_KV_REST_API_TOKEN: z
+    .string()
+    .min(1, 'UPSTASH_REDIS_REST_KV_REST_API_TOKEN is required')
+    .optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

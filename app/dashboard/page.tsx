@@ -36,7 +36,7 @@ export default async function DashboardPage() {
   const profile = profileResult.ok ? profileResult.data : null;
 
   return (
-    <div className="flex flex-col min-h-full">
+    <div className="flex min-h-full min-w-0 flex-col overflow-x-hidden">
       <DashboardHeader firstName={firstName} />
 
       {!profileResult.ok || !profile ? (
@@ -45,14 +45,14 @@ export default async function DashboardPage() {
         <>
           {/* 12-Column Responsive Bento Grid */}
           <section
-            className="grid min-w-0 grid-cols-12 gap-4 md:gap-5"
+            className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-12"
             aria-label="Dashboard overview"
           >
             <Suspense
               fallback={
                 <>
-                  <DashboardWidgetSkeleton className="col-span-12 min-h-[340px] md:col-span-6 lg:col-span-5" />
-                  <DashboardWidgetSkeleton className="col-span-12 min-h-[340px] md:col-span-6 lg:col-span-4" />
+                  <DashboardWidgetSkeleton className="min-h-[340px] sm:col-span-1 lg:col-span-5" />
+                  <DashboardWidgetSkeleton className="min-h-[340px] sm:col-span-1 lg:col-span-4" />
                 </>
               }
             >
@@ -61,7 +61,7 @@ export default async function DashboardPage() {
 
             <Suspense
               fallback={
-                <DashboardWidgetSkeleton className="col-span-12 min-h-[340px] lg:col-span-3" />
+                <DashboardWidgetSkeleton className="min-h-[340px] sm:col-span-2 lg:col-span-3" />
               }
             >
               <WeeklyPerformanceWidget userId={userId} />
@@ -69,7 +69,7 @@ export default async function DashboardPage() {
 
             <Suspense
               fallback={
-                <DashboardWidgetSkeleton className="col-span-12 min-h-[300px] lg:col-span-8" />
+                <DashboardWidgetSkeleton className="min-h-[300px] sm:col-span-2 lg:col-span-8" />
               }
             >
               <WorkoutSummaryWidget userId={userId} />
@@ -77,7 +77,7 @@ export default async function DashboardPage() {
 
             <Suspense
               fallback={
-                <DashboardWidgetSkeleton className="col-span-12 min-h-[300px] lg:col-span-4" />
+                <DashboardWidgetSkeleton className="min-h-[300px] sm:col-span-2 lg:col-span-4" />
               }
             >
               <RecoveryWidget userId={userId} />

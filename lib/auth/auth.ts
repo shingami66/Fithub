@@ -1,12 +1,42 @@
+/**
+ * Auth Helpers
+ *
+ * Server-side NextAuth configuration and session helpers.
+ * Route handlers, Server Components, Server Actions, and middleware depend on
+ * this file to share one Google OAuth/session setup.
+ */
 import type { NextAuthOptions } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import type { Session } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
+import CredentialsProvider from 'next-auth/providers/credentials';
 import { getServerSession } from 'next-auth';
+import { headers } from 'next/headers';
+import { ObjectId } from 'mongodb';
+import { z } from 'zod/v4';
+import {
+  findUserByEmailNormalized,
+  getUserProvider,
+  normalizeEmail,
+  upsertGoogleUserFromOAuth,
+  validateCredentialsUser,
+} from '@/lib/services/auth-user.service';
+import {
+  auditCredentialsLoginFailure,
+  checkLoginRateLimit,
+  getClientIpInfoFromHeaders,
+} from '@/lib/auth/rate-limit';
+import { logger } from '@/lib/utils/logger';
 
 const isDevAuthBypassEnabled =
   process.env.NODE_ENV === 'development' && process.env.DEV_AUTH_BYPASS === 'true';
 
+const credentialsSchema = z.object({
+  email: z.string().trim().toLowerCase().email(),
+  password: z.string().min(1).max(128),
+});
+
+// Local-only fallback session for manual QA. Production rejects this switch in env validation.
 const devSession: Session = {
   user: {
     id: 'dev-test-user',
@@ -35,6 +65,46 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID ?? '',
       clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
+    }),
+    CredentialsProvider({
+      name: 'Email and password',
+      credentials: {
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' },
+      },
+      async authorize(credentials) {
+        const parsed = credentialsSchema.safeParse(credentials);
+
+        if (!parsed.success) {
+          return null;
+        }
+
+        const emailNormalized = normalizeEmail(parsed.data.email);
+        const clientIp = getClientIpInfoFromHeaders(headers());
+        const rateLimit = await checkLoginRateLimit(clientIp.value, emailNormalized);
+
+        if (!rateLimit.ok) {
+          auditCredentialsLoginFailure({
+            emailNormalized,
+            reason: 'rate_limited',
+            ip: clientIp.value,
+          });
+          return null;
+        }
+
+        const result = await validateCredentialsUser(parsed.data.email, parsed.data.password);
+
+        if (!result.ok) {
+          auditCredentialsLoginFailure({
+            emailNormalized,
+            reason: result.reason,
+            ip: clientIp.value,
+          });
+          return null;
+        }
+
+        return result.user;
+      },
     }),
   ],
 
@@ -72,12 +142,72 @@ export const authOptions: NextAuthOptions = {
    *    Server Components and API routes.
    */
   callbacks: {
-    async jwt({ token, user }): Promise<JWT> {
-      // On initial sign-in, `user` is populated from the OAuth profile.
-      // On subsequent requests, only `token` is available.
+    async signIn({ user, account }) {
+      if (account?.provider !== 'google') return true;
+
+      const email = user.email;
+      if (!email) {
+        logger.warn('Google sign-in rejected because profile email was missing.');
+        return '/login?error=OAuthSignin';
+      }
+
+      const emailNormalized = normalizeEmail(email);
+
+      try {
+        const existingUser = await findUserByEmailNormalized(emailNormalized);
+        if (
+          existingUser &&
+          (getUserProvider(existingUser) === 'credentials' || existingUser.passwordHash)
+        ) {
+          logger.warn('Google sign-in rejected because email belongs to credentials provider.');
+          return '/login?error=ProviderMismatch';
+        }
+
+        const dbUser = await upsertGoogleUserFromOAuth({
+          email,
+          name: user.name,
+          image: user.image,
+        });
+
+        if (getUserProvider(dbUser) === 'credentials' || dbUser.passwordHash) {
+          logger.warn('Google sign-in rejected after user lookup because provider mismatched.');
+          return '/login?error=ProviderMismatch';
+        }
+
+        user.id = dbUser._id.toString();
+        return true;
+      } catch (error) {
+        logger.error('Google sign-in user upsert failed safely.', error);
+        return '/login?error=OAuthSignin';
+      }
+    },
+
+    async jwt({ token, user, account }): Promise<JWT> {
       if (user) {
         token.id = user.id;
       }
+
+      if (account?.provider === 'google' && token.email) {
+        const dbUser = await findUserByEmailNormalized(normalizeEmail(token.email));
+
+        if (dbUser && getUserProvider(dbUser) === 'google') {
+          token.id = dbUser._id.toString();
+        } else {
+          logger.warn('Google JWT could not resolve a MongoDB user id safely.');
+          delete (token as JWT & { id?: string }).id;
+        }
+      }
+
+      if (token.email && token.id && !isMongoObjectIdString(token.id)) {
+        const dbUser = await findUserByEmailNormalized(normalizeEmail(token.email));
+
+        if (dbUser) {
+          token.id = dbUser._id.toString();
+        } else {
+          delete (token as JWT & { id?: string }).id;
+        }
+      }
+
       return token;
     },
 
@@ -86,6 +216,19 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
       }
       return session;
+    },
+
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith('/')) return `${baseUrl}${url}`;
+
+      try {
+        const targetUrl = new URL(url);
+        if (targetUrl.origin === baseUrl) return url;
+      } catch {
+        return baseUrl;
+      }
+
+      return baseUrl;
     },
   },
 
@@ -114,6 +257,7 @@ export const authOptions: NextAuthOptions = {
  */
 export async function auth() {
   if (isDevAuthBypassEnabled) {
+    // Never use this path in production; it is only for local development without OAuth.
     return devSession;
   }
 
@@ -140,4 +284,8 @@ export async function requireAuth() {
   }
 
   return session;
+}
+
+function isMongoObjectIdString(value: string) {
+  return ObjectId.isValid(value) && new ObjectId(value).toString() === value;
 }
