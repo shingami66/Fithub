@@ -65,6 +65,18 @@ const envSchema = z.object({
 
   /** Upstash Redis REST token used for credentials auth rate limiting. */
   UPSTASH_REDIS_REST_TOKEN: z.string().min(1, 'UPSTASH_REDIS_REST_TOKEN is required').optional(),
+
+  /** Vercel Upstash integration REST API URL used for credentials auth rate limiting. */
+  UPSTASH_REDIS_REST_KV_REST_API_URL: z
+    .string()
+    .url('UPSTASH_REDIS_REST_KV_REST_API_URL must be a valid URL')
+    .optional(),
+
+  /** Vercel Upstash integration REST API token used for credentials auth rate limiting. */
+  UPSTASH_REDIS_REST_KV_REST_API_TOKEN: z
+    .string()
+    .min(1, 'UPSTASH_REDIS_REST_KV_REST_API_TOKEN is required')
+    .optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

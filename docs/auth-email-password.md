@@ -59,12 +59,21 @@ Limits:
 
 Redis keys are namespaced by environment, for example `fithub:preview` or `fithub:production`, so Preview and Production do not share active rate-limit buckets. Raw IP addresses and raw email addresses are not stored in Redis keys; deterministic server-side SHA-256 hashes are used for key parts.
 
-Required Vercel environment variables:
+Supported Vercel environment variable pairs:
 
 ```text
 UPSTASH_REDIS_REST_URL
 UPSTASH_REDIS_REST_TOKEN
 ```
+
+or, when using the Vercel Upstash Redis integration:
+
+```text
+UPSTASH_REDIS_REST_KV_REST_API_URL
+UPSTASH_REDIS_REST_KV_REST_API_TOKEN
+```
+
+The canonical `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` pair is preferred when both are present. The Vercel integration may create the `REST_API_URL` + `REST_API_TOKEN` names automatically, and those are used as a fallback. The read-only token is not used because rate limiting must write Redis counters.
 
 If these variables are missing in production, credentials login/register is blocked safely. In development, a warning is logged and local fallback is allowed.
 

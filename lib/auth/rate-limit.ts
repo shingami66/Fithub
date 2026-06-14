@@ -27,6 +27,10 @@ type ClientIpInfo = {
 type HeaderGetter = {
   get(name: string): string | null;
 };
+type UpstashRedisRestConfig = {
+  url: string;
+  token: string;
+};
 
 let redis: Redis | null | undefined;
 let loginLimiter: Ratelimit | null | undefined;
@@ -128,16 +132,33 @@ export function auditCredentialsLoginFailure({
 function getRedis() {
   if (redis !== undefined) return redis;
 
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const config = getUpstashRedisRestConfig();
 
-  if (!url || !token) {
+  if (!config) {
     redis = null;
     return redis;
   }
 
-  redis = new Redis({ url, token });
+  redis = new Redis(config);
   return redis;
+}
+
+function getUpstashRedisRestConfig(): UpstashRedisRestConfig | null {
+  const canonicalUrl = process.env.UPSTASH_REDIS_REST_URL;
+  const canonicalToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  if (canonicalUrl && canonicalToken) {
+    return { url: canonicalUrl, token: canonicalToken };
+  }
+
+  const vercelIntegrationUrl = process.env.UPSTASH_REDIS_REST_KV_REST_API_URL;
+  const vercelIntegrationToken = process.env.UPSTASH_REDIS_REST_KV_REST_API_TOKEN;
+
+  if (vercelIntegrationUrl && vercelIntegrationToken) {
+    return { url: vercelIntegrationUrl, token: vercelIntegrationToken };
+  }
+
+  return null;
 }
 
 function getLoginLimiter() {
