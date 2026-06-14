@@ -14,6 +14,7 @@ const REGISTER_FAILURE_MESSAGE = 'Registration failed. Please try again.';
 const REGISTER_SUCCESS_MESSAGE = 'Account created successfully. Please sign in.';
 const PASSWORD_MISMATCH_MESSAGE = 'Passwords do not match.';
 const PASSWORD_ASCII_MESSAGE = 'Password must use English letters, numbers, and symbols only.';
+const PASSWORD_ALLOWED_PATTERN = /^[\x21-\x7E]*$/;
 const PRINTABLE_ASCII_PASSWORD_PATTERN = /^[\x21-\x7E]+$/;
 
 type AuthMode = 'login' | 'register';
@@ -32,6 +33,26 @@ export function EmailPasswordAuthForm() {
   const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
 
   const isRegistering = mode === 'register';
+
+  function handlePasswordChange(value: string) {
+    if (!isAllowedPasswordInput(value)) {
+      setError(PASSWORD_ASCII_MESSAGE);
+      return;
+    }
+
+    setPassword(value);
+    if (error === PASSWORD_ASCII_MESSAGE) setError(null);
+  }
+
+  function handleConfirmPasswordChange(value: string) {
+    if (!isAllowedPasswordInput(value)) {
+      setError(PASSWORD_ASCII_MESSAGE);
+      return;
+    }
+
+    setConfirmPassword(value);
+    if (error === PASSWORD_ASCII_MESSAGE) setError(null);
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -181,7 +202,7 @@ export function EmailPasswordAuthForm() {
             <Lock className="h-4 w-4 text-neutral-500" aria-hidden="true" />
             <input
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              onChange={(event) => handlePasswordChange(event.target.value)}
               type={isPasswordVisible ? 'text' : 'password'}
               autoComplete={isRegistering ? 'new-password' : 'current-password'}
               minLength={isRegistering ? 8 : 1}
@@ -212,7 +233,7 @@ export function EmailPasswordAuthForm() {
               <Lock className="h-4 w-4 text-neutral-500" aria-hidden="true" />
               <input
                 value={confirmPassword}
-                onChange={(event) => setConfirmPassword(event.target.value)}
+                onChange={(event) => handleConfirmPasswordChange(event.target.value)}
                 type={isConfirmPasswordVisible ? 'text' : 'password'}
                 autoComplete="new-password"
                 minLength={8}
@@ -267,6 +288,10 @@ export function EmailPasswordAuthForm() {
       </form>
     </div>
   );
+}
+
+function isAllowedPasswordInput(value: string) {
+  return PASSWORD_ALLOWED_PATTERN.test(value);
 }
 
 function isPrintableAsciiPassword(value: string) {
